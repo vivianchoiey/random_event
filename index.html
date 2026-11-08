@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>랜덤 사건 발생기</title>
+<style>
+@font-face{font-family:'Galmuri11';src:url(fonts/Galmuri11.woff2) format('woff2');font-weight:400}
+@font-face{font-family:'Galmuri11';src:url(fonts/Galmuri11-Bold.woff2) format('woff2');font-weight:700}
+@font-face{font-family:'Galmuri14';src:url(fonts/Galmuri14.woff2) format('woff2')}
+@font-face{font-family:'NeoDunggeunmo';src:url(fonts/neodgm.woff2) format('woff2')}
+/* 글씨 크기는 폰트가 원래 설계된 크기(배수)로만 써야 도트가 안 번짐 */
+body.f11{--ff:'Galmuri11','Galmuri14',monospace;--fs:12px;--fh:24px;--fb:700;--labw:84px}
+body.f14{--ff:'Galmuri14','Galmuri11',monospace;--fs:15px;--fh:30px;--fb:400;--labw:104px}
+body.fnd{--ff:'NeoDunggeunmo','Galmuri11',monospace;--fs:16px;--fh:32px;--fb:400;--labw:112px}
+
+:root{--bg:#fbf1dc;--ink:#2b1d3a;--card:#fffaf0;--sub:#7b6a86;--line:#e9dcc2;--acc:#ff5c8d;--mint:#4fbf9f;--yel:#ffd23f;--sky:#7ec8f2;--lock:#4fbf9f;--sh:rgba(43,29,58,.22)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);background-image:linear-gradient(rgba(43,29,58,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(43,29,58,.045) 1px,transparent 1px);background-size:8px 8px;color:var(--ink);font-family:var(--ff);font-size:var(--fs);line-height:1.75;padding:24px 16px 70px;-webkit-font-smoothing:none;font-smooth:never}
+.wrap{max-width:720px;margin:0 auto}
+svg{shape-rendering:crispEdges}
+/* 도트 테두리: 모서리 깎인 4px 픽셀 박스 */
+.px{background:var(--card);box-shadow:0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink),8px 8px 0 0 var(--sh),4px 12px 0 0 var(--sh)}
+.titlebar{background:var(--ink);color:var(--yel);padding:14px 16px;margin:4px 4px 22px;display:flex;align-items:center;gap:12px;box-shadow:0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink),8px 8px 0 0 var(--sh)}
+h1{font-size:var(--fh);font-weight:var(--fb);letter-spacing:1px;line-height:1.3}
+.lead{color:#cbbbe0;font-size:var(--fs);margin-top:2px}
+.hearts{margin-left:auto;display:flex;gap:4px}
+.blink{animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+.tabs{display:flex;gap:10px;flex-wrap:wrap;margin:0 4px 14px}
+.tab{font:inherit;font-size:var(--fs);border:none;background:var(--card);color:var(--ink);padding:6px 12px;cursor:pointer;box-shadow:0 -2px 0 0 var(--ink),0 2px 0 0 var(--ink),-2px 0 0 0 var(--ink),2px 0 0 0 var(--ink),inset -3px -3px 0 0 var(--line)}
+.tab:hover{background:#fff4c8}
+.tab.on{background:var(--yel);box-shadow:0 -2px 0 0 var(--ink),0 2px 0 0 var(--ink),-2px 0 0 0 var(--ink),2px 0 0 0 var(--ink),inset 3px 3px 0 0 rgba(0,0,0,.12)}
+.tab.on::before{content:'▶ '}
+#modeTabs .tab{font-size:var(--fs);font-weight:var(--fb);padding:8px 16px}
+#modeTabs .tab.on{background:var(--acc);color:#fff}
+.sub .tab.on{background:var(--sky)}
+.seg .tab.on{background:var(--mint);color:#fff}
+.set{padding:14px 16px;margin:4px 4px 26px}
+.set h2{font-size:var(--fs);color:var(--sub);font-weight:var(--fb);margin:0 0 8px}
+.set h2::before{content:'■ ';color:var(--acc)}
+.set .tabs{margin:0 2px 14px}
+.set .tabs:last-child{margin-bottom:2px}
+.names{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.names label{font-size:var(--fs);color:var(--sub);display:flex;flex-direction:column;gap:6px;flex:1;min-width:130px}
+.names input{font:inherit;font-size:var(--fs);color:var(--ink);border:none;background:#fff;padding:7px 10px;margin:0 2px;box-shadow:0 -2px 0 0 var(--ink),0 2px 0 0 var(--ink),-2px 0 0 0 var(--ink),2px 0 0 0 var(--ink),inset 2px 2px 0 0 var(--line);outline:none}
+.names input:focus{background:#fff8d6}
+.card{padding:4px 0;margin:4px 4px 26px}
+.row{display:grid;grid-template-columns:18px var(--labw) 1fr auto;align-items:start;gap:10px;padding:11px 14px;border-bottom:2px dashed var(--line)}
+.row:last-child{border-bottom:none}
+.row.off .val,.row.off .lab{opacity:.3}
+.lab{white-space:nowrap;font-size:var(--fs);color:#fff;background:var(--ink);padding:0 6px;justify-self:start;margin-top:1px;line-height:1.7}
+.val{font-size:var(--fs);padding-top:1px}
+input[type=checkbox],input[type=radio]{appearance:none;-webkit-appearance:none;width:14px;height:14px;margin-top:3px;background:#fff;border:2px solid var(--ink);cursor:pointer;flex:none;display:grid;place-content:center}
+input[type=radio]{border-radius:0}
+input[type=checkbox]:checked,input[type=radio]:checked{background:var(--acc)}
+input[type=checkbox]:checked::after,input[type=radio]:checked::after{content:'';width:4px;height:4px;background:#fff}
+.btns{display:flex;gap:8px}
+.ib{font:inherit;font-size:var(--fs);border:none;background:#fff;width:30px;height:28px;cursor:pointer;display:grid;place-items:center;color:var(--ink);box-shadow:0 -2px 0 0 var(--ink),0 2px 0 0 var(--ink),-2px 0 0 0 var(--ink),2px 0 0 0 var(--ink),inset -2px -3px 0 0 var(--line)}
+.ib:active{transform:translateY(2px)}
+.ib.locked{background:var(--mint);color:#fff;box-shadow:0 -2px 0 0 var(--ink),0 2px 0 0 var(--ink),-2px 0 0 0 var(--ink),2px 0 0 0 var(--ink),inset 2px 2px 0 0 rgba(0,0,0,.15)}
+.main{display:flex;gap:16px;margin:4px 4px 24px}
+.big{flex:1;border:none;padding:13px;font:inherit;font-weight:var(--fb);font-size:var(--fs);cursor:pointer;color:#fff;letter-spacing:1px;box-shadow:0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink),inset -4px -5px 0 0 rgba(0,0,0,.22),inset 4px 4px 0 0 rgba(255,255,255,.3)}
+.big:active{transform:translate(0,3px);box-shadow:0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink),inset 4px 5px 0 0 rgba(0,0,0,.22)}
+.go{background:var(--acc)}
+.cp{background:var(--sky);color:var(--ink)}
+/* RPG 대화창 */
+.out{position:relative;white-space:pre-wrap;background:var(--ink);color:#fdf6e8;padding:16px 18px 26px;margin:4px 4px 10px;font-size:var(--fs);box-shadow:0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink),inset 0 0 0 3px #fdf6e8,inset 0 0 0 6px var(--ink),8px 8px 0 0 var(--sh)}
+.out::after{content:'▼';position:absolute;right:16px;bottom:8px;color:var(--yel);animation:bl 1s steps(1) infinite}
+.count{font-size:var(--fs);color:var(--sub);margin:14px 6px}
+.count::before{content:'★ ';color:var(--yel);-webkit-text-stroke:0}
+.opts{display:flex;gap:18px;flex-wrap:wrap;font-size:var(--fs);margin:0 6px 16px}
+.opts label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.opts input{margin-top:0}
+.opts select{font:inherit;font-size:var(--fs);color:var(--ink);background:#fff;border:none;padding:4px 8px;margin-left:4px;cursor:pointer;box-shadow:0 -2px 0 0 var(--ink),0 2px 0 0 var(--ink),-2px 0 0 0 var(--ink),2px 0 0 0 var(--ink);border-radius:0}
+#destRow{padding-top:2px}
+.day{margin:10px 14px 4px;font-weight:var(--fb);font-size:var(--fs);color:#fff;background:var(--acc);display:inline-block;padding:0 8px}
+.slot{display:grid;grid-template-columns:70px 1fr auto;gap:10px;align-items:start;padding:10px 14px;border-bottom:2px dashed var(--line);cursor:pointer}
+.slot:hover{background:#fff8d6}
+.slot:last-child{border-bottom:none}
+.tm{font-weight:var(--fb);color:var(--acc)}
+.st{display:inline-block;font-size:var(--fs);padding:0 6px;margin-left:8px;background:var(--yel);color:var(--ink);line-height:1.7}
+.st.done{background:var(--mint);color:#fff}
+.tw{display:block;font-size:var(--fs);color:var(--acc);margin-top:3px}
+.tw::before{content:'! '}
+.hint{font-size:var(--fs);color:var(--sub);margin:-4px 6px 16px}
+.warn{font-size:var(--fs);color:var(--acc);margin-left:4px}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--yel);color:var(--ink);padding:8px 16px;font-size:var(--fs);font-weight:var(--fb);opacity:0;transition:opacity .15s steps(2);pointer-events:none;box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink)}
+.toast.show{opacity:1}
+.hide{display:none}
+@media (max-width:480px){.row{grid-template-columns:18px 1fr auto}.row .lab{grid-column:2}.row .val{grid-column:2/4;grid-row:2}.row .btns{grid-column:3;grid-row:1}h1{font-size:var(--fh)}.hearts{display:none}}
+
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:0 4px 18px}
+.toolbar .lbl{color:var(--sub);margin-right:-4px}
+.bgm{display:flex;align-items:center;gap:8px}
+.bgm .eq{display:flex;align-items:flex-end;gap:2px;width:14px;height:12px}
+.bgm .eq i{flex:1;height:30%;background:currentColor}
+.bgm.on{background:var(--ink);color:var(--yel)}
+.bgm.on .eq i{animation:eq .8s steps(3) infinite}
+.bgm.on .eq i:nth-child(2){animation-delay:.2s}.bgm.on .eq i:nth-child(3){animation-delay:.4s}
+@keyframes eq{0%,100%{height:30%}50%{height:100%}}
+.ib.wide{width:auto;padding:0 8px;gap:4px;display:flex;align-items:center;white-space:nowrap}
+.big{display:flex;align-items:center;justify-content:center;gap:8px}
+.foot{color:var(--sub);margin:24px 6px 0;text-align:center}
+@media (prefers-reduced-motion:reduce){.bgm.on .eq i,.blink,.out::after{animation:none}}
+</style>
+</head>
+<body class="fnd">
+<div class="wrap">
+  <div class="titlebar">
+    <div><h1>랜덤 사건 발생기</h1><p class="lead"><span class="blink">▶</span> 제타 롤플레이용 · 시대와 형편에 맞춰 사건·코스를 뽑아요</p></div>
+    <div class="hearts"><svg width="18" height="16" viewBox="0 0 9 8"><path d="M1 0h2v1H1zM6 0h2v1H6zM0 1h4v1H0zM5 1h4v1H5zM0 2h9v2H0zM1 4h7v1H1zM2 5h5v1H2zM3 6h3v1H3zM4 7h1v1H4z" fill="#ff5c8d"/></svg><svg width="18" height="16" viewBox="0 0 9 8"><path d="M1 0h2v1H1zM6 0h2v1H6zM0 1h4v1H0zM5 1h4v1H5zM0 2h9v2H0zM1 4h7v1H1zM2 5h5v1H2zM3 6h3v1H3zM4 7h1v1H4z" fill="#ff5c8d"/></svg><svg width="18" height="16" viewBox="0 0 9 8"><path d="M1 0h2v1H1zM6 0h2v1H6zM0 1h4v1H0zM5 1h4v1H5zM0 2h9v2H0zM1 4h7v1H1zM2 5h5v1H2zM3 6h3v1H3zM4 7h1v1H4z" fill="#ff5c8d"/></svg></div>
+  </div>
+  <div class="toolbar">
+    <button class="tab bgm" id="bgmBtn" type="button" aria-pressed="false"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span id="bgmLab">설기 BGM 켜기</span></button>
+    <span class="lbl">글씨</span>
+    <div class="tabs seg" id="fontTabs" style="margin:0">
+      <button class="tab" data-v="f11">작게</button>
+      <button class="tab" data-v="f14">크게</button>
+      <button class="tab" data-v="fnd">둥근모</button>
+    </div>
+  </div>
+  <div class="tabs" id="modeTabs">
+    <button class="tab on" data-mode="event">사건 뽑기</button>
+    <button class="tab" data-mode="course">코스 뽑기</button>
+  </div>
+
+  <div class="set px">
+    <div class="names">
+      <label>남자 캐릭터 이름<input id="nM" value="승재"></label>
+      <label>여자 캐릭터 이름<input id="nF" value="카야"></label>
+    </div>
+    <h2>시대 배경</h2>
+    <div class="tabs seg" id="eraTabs">
+      <button class="tab" data-v="m">현대</button>
+      <button class="tab" data-v="n">90년대</button>
+      <button class="tab" data-v="g">경성 (1920~30년대)</button>
+      <button class="tab" data-v="j">조선</button>
+      <button class="tab" data-v="f">로판 (서양풍 귀족)</button>
+      <button class="tab" data-v="s">센티넬버스</button>
+      <button class="tab" data-v="w">무협</button>
+    </div>
+    <h2>사는 형편</h2>
+    <div class="tabs seg" id="clsTabs"></div>
+  </div>
+
+  <!-- 사건 모드 -->
+  <section id="eventMode">
+    <div class="tabs sub" id="catTabs">
+      <button class="tab on" data-cat="date">데이트</button>
+      <button class="tab" data-cat="daily">일상</button>
+      <button class="tab" data-cat="trip">여행</button>
+      <button class="tab" data-cat="home">집 안</button>
+      <button class="tab" data-cat="all">전부 섞기</button>
+    </div>
+    <p class="hint">시간·장소·날씨에 안 맞는 사건은 알아서 빠져요 (밤에 미술관, 실내에서 소나기 피하기 같은 것) · 네모 체크를 풀면 그 항목 제외 · [고정]은 다시 뽑아도 그대로 · [랜덤]은 그 줄만 다시 뽑기</p>
+    <div class="card px" id="rows"></div>
+    <div class="main">
+      <button class="big go" id="rollAll"><span class="dz"></span>전체 랜덤 뽑기</button>
+      <button class="big cp" id="copyEv">복사</button>
+    </div>
+    <div class="out" id="outEv"></div>
+    <p class="count" id="countEv"></p>
+  </section>
+
+  <!-- 코스 모드 -->
+  <section id="courseMode" class="hide">
+    <div class="opts" id="lenRow">
+      <label><input type="radio" name="len" value="1" checked> 당일</label>
+      <label><input type="radio" name="len" value="2"> 1박 2일</label>
+      <label><input type="radio" name="len" value="3"> 2박 3일</label>
+      <label><input type="radio" name="len" value="4"> 3박 4일</label>
+      <label><input type="radio" name="len" value="5"> 4박 5일</label>
+    </div>
+    <div class="opts" id="destRow">
+      <label><input type="radio" name="dest" value="local" checked> 근교 데이트</label>
+      <label><input type="radio" name="dest" value="kr"> 국내 여행</label>
+      <label><input type="radio" name="dest" value="abroad"> 해외 여행</label>
+      <select id="city" aria-label="도시"></select>
+    </div>
+    <div class="opts">
+      <label><input type="checkbox" id="lowWalk"> 많이 걷는 곳 빼기</label>
+      <label><input type="checkbox" id="addTw" checked> 돌발 사건 1개 넣기</label>
+    </div>
+    <p class="hint">일정 줄을 누르면 (완료) → (진행중) → 표시 없음 순서로 바뀌어요 · [랜덤]은 그 일정만 다시 뽑기</p>
+    <div class="card px" id="slots"></div>
+    <div class="main">
+      <button class="big go" id="rollCourse"><span class="dz"></span>코스 랜덤 뽑기</button>
+      <button class="big cp" id="copyCo">복사</button>
+    </div>
+    <div class="out" id="outCo"></div>
+    <p class="count" id="countCo"></p>
+  </section>
+<p class="foot">배경음악: 설기 떡집 테마곡 (직접 만든 곡이라 저작권 걱정 없어요) · 폰트: 갈무리, Neo둥근모 (SIL 오픈 폰트 라이선스)</p>
+</div>
+<div class="toast" id="toast">복사했어요</div>
+
+<script>
+/* 태그 규칙 (문장@태그,태그)
+   시대: m 현대 · n 90년대 · g 경성 · j 조선  (시대 태그가 없으면 모든 시대)
+   형편: r 상류층만 · c 서민만  (없으면 누구나)
+   장소 성격: in 실내 · out 야외 · biz 직원 있는 가게 · eat 먹고 마시는 곳 · day 낮에만 여는 곳 · night 밤에만 여는 곳
+   시간: d 낮 · n2 밤   날씨: cold 추움 · hot 더움 · rain 비
+   !태그 = 그 조건이 있어야 나옴 (예: !out 은 야외 장소일 때만)  */
+const RAW={
+time:[
+"평일 아침 8시@m,n,g,d,am","평일 점심 12시@m,n,g,d","평일 오후 3시@m,n,g,d","평일 저녁 7시@m,n,g,n2","평일 밤 11시@m,n,g,n2,late","금요일 저녁 8시@m,n,g,n2","토요일 오전 10시@m,n,g,d","토요일 오후 2시@m,n,g,d","토요일 밤 10시@m,n,g,n2","일요일 아침 9시@m,n,g,d,am","일요일 오후 4시@m,n,g,d","새벽 2시@m,n,g,n2,late",
+"닭 우는 새벽@j,d,am","이른 아침@j,d,am","한낮@j,d","장날 오후@j,d","해 질 녘@j,n2","달 뜬 저녁@j,n2","한밤중@j,n2,late","명절 아침@j,d"],
+weather:[
+"맑음","하루 종일 흐림","갑자기 쏟아지는 소나기@rain","하루 종일 비@rain","첫눈@cold,winter","폭설@cold,winter","영하 10도 한파@m,n,g,cold,winter","살을 에는 추위@j,cold,winter","34도 폭염@m,n,g,hot,summer","찌는 듯한 삼복더위@j,hot,summer","미세먼지 나쁨@m","황사가 낀 날@m,n,spring","강한 바람","짙은 안개","선선한 가을바람@cold,autumn","장맛비@rain,summer","꽃잎 날리는 봄날@spring"],
+prop:[
+"우산 하나","손수건","꽃 한 송이","손으로 쓴 쪽지","손편지","목도리@cold","털장갑@m,n,cold","귤 한 봉지@m,n,g,winter","군고구마@m,n,g,j,w,cold","붕어빵@m,n,cold","머리끈@m,n","안경@m,n,g","반창고@m,n","열쇠@m,n,g","영수증@m,n","립밤@m","향수@m,n,g","커플링@m,n","폴라로이드 사진@m","이어폰 한쪽@m","캔커피@m,n","핫팩@m,cold","담요","와인 한 병@m,n,r","자동차 키@m,n,r","떨어진 셔츠 단추@m,n,g","꽃다발@m,n,g","아이스크림 두 개@m,n,hot,summer","택시 영수증@m,n","편의점 비닐봉지@m,c",
+"삐삐@n","공중전화 카드@n","카세트테이프@n","워크맨@n","필름 카메라@n","바나나우유@n","비디오테이프@n",
+"양산@g","회중시계@g","축음기 레코드판@g","활동사진 표 두 장@g","캐러멜 상자@g","중절모@g","전차표@g",
+"노리개@j","비녀@j","쥘부채@j","서찰@j","약과@j","곶감@j","청사초롱@j","꽃신@j","은가락지@j","댕기@j","쓰개치마@j"],
+point:[
+"설렘 — {A:이} {B:을} 의식해서 말이 자꾸 꼬인다","질투 — {A:이} 질투를 느끼지만 티 내지 않으려고 애쓴다","서운함 — {A:이} 서운한 걸 말로 못 하고 표정에만 드러난다","걱정 — {A:이} {B}의 상태를 계속 살피며 걱정한다","장난 — {A:이} {B:을} 놀리고 {B:이} 당황한다","고백 직전 — {A:이} 속마음을 말하려다 타이밍을 놓친다","어색함 — 둘 다 할 말을 못 찾아 잠깐 정적이 흐른다","보호 — {A:이} 본능적으로 {B:을} 자기 뒤로 감싼다","자존심 — 둘 다 먼저 숙이기 싫어서 말싸움이 길어진다","위로 — {A:이} 말없이 {B}의 곁을 지켜준다","웃음 — 별것 아닌 일로 둘 다 크게 웃음이 터진다","화해 — {A:이} 먼저 미안하다고 말한다","들킴 — {A:이} 숨기던 마음이 {B}에게 들킨다","첫 경험 — {A:이} 오늘 처음 해보는 일이 생긴다","오해 — {B:이} {A}의 행동을 다른 뜻으로 받아들인다","솔직함 — {A:이} 돌려 말하지 않고 원하는 걸 직설적으로 말한다","아쉬움 — 헤어지기 직전 {A:이} 시간을 더 끌려고 한다","안도 — 걱정했던 일이 별일 아니어서 {A:이} 크게 숨을 내쉰다","긴장 — {A:이} 손에 땀이 날 정도로 긴장한다","다정함 — {A:이} {B:이} 무심코 했던 말을 기억해서 챙겨준다"],
+twist:[
+"갑자기 비가 쏟아져 근처 처마 밑으로 피해야 한다@!out","정신 차려보니 시간이 예상보다 훨씬 늦어져 있다","{A:이} 무심코 한 말이 {B}의 오래된 상처를 건드린다","{A:이} 아까 했던 작은 거짓말이 들킨다","{A:이} 가진 돈을 잃어버린 걸 뒤늦게 알아챈다","길을 잘못 들어 낯선 동네에서 헤맨다@!out","술기운에 {A:이} 평소라면 안 할 속마음을 말해버린다@!eat","{A:이} 다른 이성과 웃으며 이야기하는 모습을 {B:이} 보고 질투한다","{A:이} 갑자기 머리가 아프다며 얼굴이 하얗게 질린다","{A:이} 발을 헛디뎌 넘어지고 손바닥에 가벼운 찰과상을 입는다","{A:이} 옆자리 사람들 대화에서 {B}에 대한 소문을 듣게 된다@!biz","둘이 서로를 위해 준비한 선물이 똑같은 물건이었다","어린아이가 다가와 \"두 사람 혼인했어요?\"라고 묻는다@j,nolate","어린아이가 다가와 \"두 사람 사귀어요?\"라고 묻는다@m,n,g,nolate","떠돌이 개가 {A}에게 달려든다@!out","둘이 약속이라도 한 듯 같은 색 옷을 입고 나왔다","가게 주인이 \"두 분 부부시죠?\"라고 묻고 둘 다 대답을 못 한다@!biz","{A:이} {B}의 몰랐던 습관 하나를 처음 발견한다","{A:이} 결국 참지 못하고 눈물을 보인다","{A:이} {B}의 이름을 처음으로 다정하게 부른다","좁은 자리 때문에 두 사람 어깨가 계속 닿는다@!in","{A:이} {B}에게서 나는 냄새를 맡고 잠깐 말을 멈춘다","{A}의 옛 연인이 나타난다","{A:이} 몰래 준비한 계획을 {B:이} 먼저 눈치챈다","별다른 사건 없이 조용히 흘러가고 두 사람의 대화가 길어진다","{A:이} 깜빡 졸다가 {B}의 어깨에 기댄다","{A:이} 추워하자 {B:이} 자기 겉옷을 벗어준다@!cold","{A:이} 손이 시리다며 {B}의 소맷자락 안으로 손을 넣는다@!cold","더위에 지친 {A:이} 그늘을 찾아 {B:을} 끌고 간다@!hot,!out","{A:이} 너무 긴장해서 음식을 거의 못 먹는다@!eat","{A}의 가족에게서 지금 당장 집으로 오라는 연락이 온다","{A:이} 떨어뜨린 물건을 {B:이} 줍다가 손이 겹친다","젖은 옷 때문에 {A:이} 몸을 떨기 시작한다@!rain","{A:이} 다른 사람에게 {B:을} '내 사람'이라고 소개해버린다",
+"{A}의 휴대폰 배터리가 꺼져 연락 수단이 사라진다@m","{A}에게 일 때문에 급한 전화가 와서 10분 넘게 자리를 비운다@m","모르는 사람이 두 사람을 몰래 사진 찍는 걸 {A:이} 눈치챈다@m,n","주차해 둔 차가 고장 나 발이 묶인다@m,n,r","{A}의 휴대폰에 오해할 만한 메시지 알림이 뜨고 {B:이} 그걸 본다@m","{A:이} 갑자기 같이 사진을 찍자며 휴대폰을 든다@m","엘리베이터가 멈춰 둘이 좁은 공간에 갇힌다@m,n,!in","갑자기 정전이 되어 주변이 캄캄해진다@m,n,g,!in","가게에서 흘러나온 노래가 {A:이} 예전에 좋아한다고 말했던 노래다@m,n,!biz","{A}의 비서가 급한 서류를 들고 찾아온다@m,n,r","{A}의 카드가 정지돼 {B:이} 대신 계산한다@m,n,!biz","택시가 안 잡혀 한참을 길에 서 있어야 한다@m,n,!out","가진 돈이 모자라 {A:이} 곤란해진다@c",
+"{A}의 삐삐가 울려 공중전화를 찾아야 한다@n","공중전화 동전이 떨어져 통화가 중간에 끊긴다@n","{A:이} 녹음해 온 카세트테이프를 {B}에게 건넨다@n",
+"순사가 다가와 두 사람에게 어디 가는 길이냐고 캐묻는다@g,!out","전차가 끊겨 걸어서 돌아가야 한다@g","축음기에서 흘러나온 노래에 {A:이} 따라 흥얼거린다@g,!in","{A}에게 급한 전보가 도착한다@g","{A:이} 양장 차림이 낯설어 계속 옷매무새를 만진다@g",
+"인경 종이 울려 통행금지 시각이 다가온다@j,!out","{A}의 집 하인이 두 사람을 찾으러 나왔다@j,r","{A}의 쓰개치마가 바람에 날아간다@j,!out","남녀가 단둘이 있는 걸 동네 사람이 보고 수군거린다@j","{A:이} 접은 서찰을 {B}의 손에 몰래 쥐여준다@j,g","{A}에게 급한 전갈이 와서 자리를 떠야 한다@j","{A:이} 양반 체면에 걸려 하고 싶은 말을 삼킨다@j,r","장터에서 소매치기가 {A}의 돈주머니를 채 간다@j,c,!out"],
+cats:{
+date:{label:"데이트",
+place:[
+"한남동 편집숍@m,in,biz,day","청담동 파인다이닝 룸@m,r,in,biz,eat","성수동 루프탑 바@m,out,biz,eat,night","성수동 팝업스토어@m,in,biz,day","미술관@m,n,in,biz,day","삼청동 한옥 찻집@m,in,biz,eat","북촌 골목@m,out","서촌 와인바@m,in,biz,eat,night","연남동 LP바@m,in,biz,eat,night","백화점 명품관@m,r,in,biz,day","반포 한강공원@m,out","남산서울타워@m,n,out","대형 서점@m,n,in,biz,day","아이맥스 영화관@m,in,biz","을지로 노포 골목@m,c,out,eat","이태원 재즈바@m,in,biz,eat,night","반지 공방@m,in,biz,day","향수 공방@m,in,biz,day","호텔 스파@m,r,in,biz","호텔 라운지@m,r,in,biz,eat","북한강 뷰 카페@m,in,biz,eat,day","강릉 바닷가@m,n,out","놀이공원@m,n,out,biz,day,crowd","교외 대형 베이커리 카페@m,in,biz,eat,day","서울숲@m,out","방탈출 카페@m,in,biz","코인노래방@m,c,in,biz,24","편의점 앞 파라솔@m,c,out,eat,24","포장마차@m,n,c,out,eat,night","한강 요트@m,r,out,biz",
+"롤러스케이트장@n,in,biz","오락실@n,c,in,biz","비디오방@n,in,biz","레코드 가게@n,in,biz,day","경양식 돈가스집@n,in,biz,eat","대학로 소극장@n,in,biz","압구정 커피숍@n,r,in,biz,eat","동시상영 극장@n,c,in,biz","호프집@n,c,in,biz,eat,night","63빌딩 전망대@n,r,in,biz,day","고수부지 잔디밭@n,out","만화방@n,c,in,biz",
+"본정통 거리@g,out,crowd","다방@g,in,biz,eat","백화점 옥상정원@g,r,out,biz,day","활동사진관@g,in,biz","경성역 대합실@g,in,crowd","한강 인도교@g,out","창경원 벚꽃길@g,out,day,spring","양식당@g,r,in,biz,eat","제과점@g,in,biz,eat,day,early","남산 산책로@g,out","사진관@g,in,biz,day","설렁탕집@g,c,in,biz,eat,early","전차 안@g,in,crowd",
+"저잣거리@j,out,day,crowd","주막 평상@j,c,out,biz,eat,early","서책방@j,in,biz,day,early","방물가게@j,in,biz,day,early","연못가 정자@j,r,out","산사 가는 길@j,out,day","나루터@j,out","강가 버드나무 아래@j,out","꽃 핀 언덕@j,out,day,spring","그네 뛰는 단옷날 마당@j,out,day,summer","연등 걸린 다리@j,out,night","뱃놀이 배 위@j,r,out"],
+event:[
+"{F:이} 자리를 비운 사이 {M:이} 몰래 값을 치러 둔다@!biz","{M:이} {F}의 옷차림을 보고 한참 동안 말을 못 한다","{F:이} {M}의 지난 연애 이야기를 대놓고 물어본다@m,n,g","{M}의 지인과 우연히 마주쳐 {F:을} 어떻게 소개할지 정해야 한다@nolate","{F}의 친구와 우연히 마주쳐 친구가 {M}에 대해 꼬치꼬치 캐묻는다@nolate","{F:이} 처음으로 먼저 {M}의 손을 잡는다","{M:이} 몰래 준비한 선물을 {F:이} 먼저 발견한다","{F:이} 새 신발 때문에 발뒤꿈치가 까진다","{F:이} 이번엔 자기가 내겠다고 고집을 부린다@!biz","{F:이} 갑자기 \"우리 지금 무슨 사이예요?\"라고 묻는다@m,n,g","{F:이} 갑자기 \"도련님은 저를 어찌 생각하십니까\"라고 묻는다@j","둘이 같은 물건을 동시에 집으려다 손이 겹친다","{M:이} 긴장해서 준비해 온 말을 통째로 까먹는다","{M:이} 처음으로 {F}의 이름을 다정하게 부른다","우산이 하나뿐이라 한 우산을 같이 써야 한다@!out,!rain","{F:이} {M}의 옷에 마실 것을 쏟는다@!eat","집에 가기 싫어서 {F:이} 일부러 걸음을 늦춘다@!out","{M:이} 다음에 또 만날 날을 그 자리에서 정하자고 한다","다른 여자가 {M}에게 관심을 보이며 말을 건다","다른 남자가 {F}에게 관심을 보이며 말을 건다","가게 주인이 두 사람을 부부로 착각하고 \"바깥양반\", \"안사람\"이라고 부른다@!biz","주문한 음식이 잘못 나왔는데 {M:이} 말을 못 하고 그냥 먹으려 한다@!eat","옆자리 커플이 크게 싸우기 시작해 분위기가 어색해진다@!eat","{F:이} 생각보다 술을 많이 마셔 취기가 오른다@!eat","문 닫을 시간이 다 되어 주인이 눈치를 준다@!biz,!n2",
+"{M:이} 미리 예약해둔 자리가 직원 실수로 다른 사람에게 넘어가 있다@m,n,!biz","사진을 부탁한 행인이 둘을 커플 포즈로 세운다@m,n,!out,nolate,norain","{M}에게 일 전화가 계속 걸려와 데이트가 자꾸 끊긴다@m","버스커가 커플 이벤트를 하겠다며 둘을 앞으로 불러낸다@m,!out,nolate,norain","대기 줄이 길어 1시간 넘게 기다려야 한다@m,!biz,nolate","직원이 커플 메뉴를 권한다@m,n,!eat","근처에서 {F}의 전 남자친구와 마주친다@m,n,nolate","{M:이} 데이트 비용을 아끼려고 미리 할인 쿠폰을 챙겨 왔다@m,c","{M:이} 가게 하나를 통째로 빌려 둔 걸 {F:이} 알게 된다@m,n,r,!biz",
+"{M:이} 삐삐 음성 메시지로 미리 남겨둔 말을 {F:이} 듣고 왔다@n","{F:이} 직접 고른 노래를 녹음한 테이프를 {M}에게 건넨다@n",
+"{F:이} 처음 마셔보는 커피가 써서 얼굴을 찡그린다@g,!eat","{M:이} 양장을 차려입은 {F:을} 보고 넋을 놓는다@g","{M:이} {F}의 자리를 미리 맡아 둔다@g",
+"{M:이} 장옷 아래로 보인 {F}의 얼굴에 넋을 놓는다@j","{M:이} 몰래 사 둔 노리개를 {F}에게 건넨다@j","{F:이} 체면도 잊고 소리 내어 웃음을 터뜨린다@j","둘이 함께 있는 걸 {F}의 집안 어른이 볼 뻔한다@j","{M:이} 담장 너머로 {F}에게 꽃가지를 건넨다@j,!out"]},
+daily:{label:"일상",
+place:[
+"동네 편의점@m,in,biz,24","대형마트@m,n,in,biz,crowd","동네 세탁소@m,n,in,biz,day,early","약국@m,n,in,biz,day,early","동네 병원 대기실@m,n,in,biz,day,early","미용실@m,n,in,biz,day","단골 국밥집@m,n,c,in,biz,eat,early,24","코인빨래방@m,c,in,24","동네 공원 산책로@m,n,out","지하주차장@m,in","지하철 안@m,n,in,crowd","버스정류장@m,n,out,crowd","다이소@m,c,in,biz,day","올리브영@m,in,biz","은행 창구@m,n,in,biz,day,early","우체국@m,n,g,in,biz,day,early","동물병원@m,in,biz,day","꽃집@m,n,in,biz,day","동네 빵집@m,n,in,biz,eat,early","택시 안@m,n,in","비 오는 골목@m,n,g,out","재래시장@m,n,c,out,biz,day,early,crowd","백화점 식품관@m,r,in,biz,day","골프 연습장@m,r,in,biz","동네 슈퍼@n,c,in,biz,early","공중전화 부스@n,out","목욕탕@n,c,in,biz,day,early","문방구@n,in,biz,day,early",
+"종로 거리@g,out,crowd","약방@g,in,biz,day,early","전찻길@g,out","포목점@g,in,biz,day,early","우물가 빨래터@g,j,c,out,day",
+"장터@j,out,day,crowd","대장간 앞@j,out,day","약재상@j,in,biz,day,early","우물가@j,out","서당 담벼락@j,out,day","돌다리@j,out","주막@j,c,out,biz,eat,early"],
+event:[
+"{F:이} 감기 기운으로 하루 종일 콧물을 훌쩍인다","{F:이} 두통 때문에 하루 종일 컨디션이 바닥이다","길 잃은 강아지가 둘을 졸졸 따라온다@!out","이웃이 두 사람 관계를 오해하고 말을 건다","{F:이} 넘어질 뻔한 걸 {M:이} 붙잡는다","{M:이} 머리를 자르고 왔는데 {F:이} 바로 알아차리지 못한다@m,n,g","{F:이} 새 옷을 차려입고 {M}의 반응을 기다린다","{M:이} {F:이} 좋아하는 주전부리를 몰래 사 둔다","{M:이} {F}의 생일을 하루 늦게 알게 된다","사람이 몰려 둘이 바짝 붙게 된다@!crowd","{F:이} 아끼던 물건을 잃어버려 같이 찾는다","장 본 짐이 너무 많아 {M:이} 다 들겠다고 고집을 부린다","가게 주인이 둘을 보고 신혼부부냐고 묻는다@!biz","{M:이} 처음 해보는 일을 하다 크게 실수한다","{F:이} 값을 깎으려고 흥정하는 걸 {M:이} 신기하게 본다@!biz,c","{M:이} 가격표를 안 보고 물건을 고르다 {F:에게} 잔소리를 듣는다@r,!biz","{M}의 가족에게서 갑자기 연락이 온다","{F}에게 모르는 사람이 자꾸 말을 건다",
+"택배가 다른 집으로 잘못 배송된다@m","{F}의 휴대폰 배터리가 꺼져 연락이 끊긴다@m","{F:이} {M} 얘기를 친구에게 보내려던 메시지를 {M}에게 잘못 보낸다@m","{M:이} {F}의 휴대폰 배경화면을 우연히 본다@m","계산대 앞에서 {M:이} 포인트 적립 번호를 몰라 당황한다@m,!biz","{M:이} 키오스크 주문을 못 해서 쩔쩔맨다@m,r,!biz","{F:이} 공중전화로 {M}에게 전화를 건다@n","둘이 바나나우유 하나를 나눠 마신다@n,c","{M:이} {F}의 삐삐 번호를 처음으로 물어본다@n",
+"{M:이} {F}에게 처음으로 편지를 부친다@g","{F:이} {M}에게 주려고 약을 지어 왔다@g,j","{M:이} {F}의 무거운 짐을 말없이 대신 들어준다@g,j","{F:이} 장에서 산 엿을 {M}에게 반 갈라준다@j","동네 아낙들이 둘을 두고 수군거린다@j"]},
+trip:{label:"여행",
+place:[
+"제주 우도 해안도로@m,n,out",
+"제주 성산일출봉@m,n,out,day",
+"제주 협재 해변@m,n,out",
+"부산 해운대@m,n,out",
+"부산 감천문화마을@m,out,day",
+"경주 황리단길@m,out",
+"경주 불국사@m,n,j,out,day",
+"여수 밤바다@m,out,night",
+"전주 한옥마을@m,out",
+"속초 바닷가@m,n,out",
+"금강산 계곡@j,g,out,day",
+"동래온천@j,g,biz",
+"한양 가는 고갯길@j,out",
+"강화도 갯벌@j,out",
+"도쿄 시부야 스크램블 교차로@m,n,out,crowd,abroad",
+"도쿄 긴자 거리@m,n,g,out,abroad",
+"도쿄 오모테산도 카페@m,in,biz,eat,abroad",
+"도쿄 디즈니씨@m,out,biz,day,crowd,abroad",
+"도쿄 롯폰기 전망대@m,in,biz,abroad",
+"교토 기요미즈데라@m,n,out,day,crowd,abroad",
+"교토 아라시야마 대나무숲@m,n,out,day,abroad",
+"교토 기온 골목@m,n,out,abroad",
+"교토 료칸 노천탕@m,n,r,out,biz,abroad",
+"오사카 도톤보리@m,n,out,crowd,abroad",
+"오사카 유니버설 스튜디오@m,out,biz,day,crowd,abroad",
+"나라 사슴공원@m,n,out,day,abroad",
+"삿포로 눈축제@m,n,out,winter,crowd,abroad",
+"오타루 운하@m,n,out,abroad",
+"후쿠오카 나카스 포장마차@m,n,c,out,biz,eat,night,abroad",
+"오키나와 해변@m,n,out,abroad",
+"가마쿠라 해변 기찻길@m,out,abroad",
+"타이베이 지우펀 찻집@m,in,biz,eat,abroad",
+"타이베이 스린 야시장@m,n,c,out,eat,night,crowd,abroad",
+"홍콩 빅토리아 피크@m,n,out,abroad",
+"홍콩 스타페리 위@m,n,out,biz,abroad",
+"마카오 카지노 호텔@m,r,in,biz,abroad",
+"상하이 와이탄 야경@m,g,out,abroad",
+"베이징 자금성@m,out,day,crowd,abroad",
+"하얼빈 중앙대가@g,out,winter,abroad",
+"방콕 카오산로드@m,c,out,crowd,abroad",
+"방콕 루프탑 바@m,out,biz,eat,night,abroad",
+"치앙마이 야시장@m,c,out,eat,night,abroad",
+"푸껫 해변@m,out,abroad",
+"발리 우붓 논길@m,out,day,abroad",
+"발리 풀빌라@m,r,out,abroad",
+"싱가포르 마리나베이샌즈 루프탑 수영장@m,r,out,biz,abroad",
+"싱가포르 가든스 바이 더 베이@m,out,abroad",
+"다낭 미케 해변@m,out,abroad",
+"호이안 등불 거리@m,out,night,abroad",
+"하노이 구시가지 노점 쌀국수@m,c,out,eat,abroad",
+"세부 호핑 투어 배 위@m,out,biz,day,abroad",
+"보라카이 화이트비치 석양@m,out,abroad",
+"몰디브 수상 빌라@m,r,in,abroad",
+"두바이 부르즈 칼리파 전망대@m,r,in,biz,abroad",
+"두바이 사막 사파리@m,r,out,biz,abroad",
+"포카라 호숫가@m,out,abroad",
+"타지마할@m,out,day,crowd,abroad",
+"몽골 초원 게르@m,out,abroad",
+"파리 에펠탑 앞 잔디밭@m,n,out,abroad",
+"파리 몽마르트르 언덕@m,n,out,abroad",
+"파리 센강 유람선@m,n,out,biz,abroad",
+"파리 루브르 박물관@m,n,in,biz,day,crowd,abroad",
+"파리 샹젤리제 명품 거리@m,n,r,out,abroad",
+"파리 노천 카페@m,n,out,biz,eat,abroad",
+"베르사유 궁전 정원@m,out,day,abroad",
+"니스 해변 산책로@m,out,abroad",
+"몽생미셸@m,out,abroad",
+"런던 타워브리지@m,n,out,abroad",
+"런던 코벤트가든@m,n,out,crowd,abroad",
+"런던 노팅힐 골목@m,out,abroad",
+"런던 하이드파크@m,out,abroad",
+"런던 웨스트엔드 뮤지컬 극장@m,n,in,biz,abroad",
+"런던 펍@m,n,in,biz,eat,abroad",
+"에든버러 성 언덕길@m,out,abroad",
+"스코틀랜드 고성 호텔@m,r,in,biz,abroad",
+"로마 트레비 분수@m,n,out,crowd,abroad",
+"로마 콜로세움@m,out,day,crowd,abroad",
+"바티칸 성 베드로 광장@m,out,day,crowd,abroad",
+"피렌체 미켈란젤로 광장 석양@m,out,abroad",
+"베네치아 곤돌라 위@m,n,r,out,biz,abroad",
+"밀라노 두오모 광장@m,out,abroad",
+"아말피 해안 절벽 마을@m,r,out,abroad",
+"토스카나 와이너리@m,r,out,biz,eat,day,abroad",
+"친퀘테레 바닷가 마을@m,out,abroad",
+"바르셀로나 사그라다 파밀리아@m,in,biz,day,abroad",
+"바르셀로나 해변 바@m,out,biz,eat,abroad",
+"마드리드 타파스 바@m,in,biz,eat,night,abroad",
+"세비야 플라멩코 공연장@m,in,biz,night,abroad",
+"포르투 도루강변@m,out,abroad",
+"리스본 노란 트램 안@m,in,crowd,abroad",
+"산토리니 이아 마을 석양@m,out,abroad",
+"아테네 아크로폴리스@m,out,day,abroad",
+"프라하 카를교@m,n,out,abroad",
+"프라하 크리스마스 마켓@m,out,winter,crowd,abroad",
+"빈 오페라하우스@m,r,in,biz,night,abroad",
+"빈 오래된 카페@m,in,biz,eat,abroad",
+"잘츠부르크 미라벨 정원@m,out,abroad",
+"할슈타트 호숫가 마을@m,out,abroad",
+"융프라우요흐@m,out,biz,day,abroad",
+"체르마트 마테호른 뷰 호텔@m,r,in,biz,abroad",
+"인터라켄 패러글라이딩@m,out,biz,day,abroad",
+"뮌헨 옥토버페스트 맥주 텐트@m,in,biz,eat,crowd,autumn,abroad",
+"베를린 브란덴부르크 문@m,out,abroad",
+"암스테르담 운하 보트@m,out,biz,abroad",
+"부다페스트 야경 유람선@m,out,biz,night,abroad",
+"아이슬란드 오로라 들판@m,out,night,winter,abroad",
+"아이슬란드 블루라군 온천@m,out,biz,abroad",
+"노르웨이 피오르 크루즈@m,r,out,biz,abroad",
+"핀란드 유리 이글루@m,r,in,winter,abroad",
+"코펜하겐 뉘하운 항구@m,out,abroad",
+"두브로브니크 성벽길@m,out,day,abroad",
+"이스탄불 그랜드 바자르@m,in,biz,day,crowd,abroad",
+"카파도키아 열기구 위@m,out,biz,day,abroad",
+"뉴욕 타임스스퀘어@m,n,out,crowd,abroad",
+"뉴욕 센트럴파크@m,n,out,abroad",
+"뉴욕 브루클린 브리지@m,n,out,abroad",
+"뉴욕 엠파이어스테이트 전망대@m,n,in,biz,abroad",
+"뉴욕 브로드웨이 극장@m,n,in,biz,abroad",
+"뉴욕 록펠러센터 아이스링크@m,n,out,biz,winter,abroad",
+"뉴욕 5번가 쇼핑@m,n,r,out,abroad",
+"LA 산타모니카 해변@m,n,out,abroad",
+"LA 그리피스 천문대@m,out,abroad",
+"라스베이거스 호텔 카지노@m,n,r,in,biz,abroad",
+"그랜드캐니언 전망대@m,out,day,abroad",
+"샌프란시스코 금문교@m,n,out,abroad",
+"하와이 와이키키 해변@m,n,out,abroad",
+"마우이 석양 크루즈@m,r,out,biz,abroad",
+"마이애미 사우스비치@m,out,abroad",
+"밴쿠버 스탠리파크@m,out,abroad",
+"밴프 루이스 호수@m,out,abroad",
+"퀘벡 구시가지 겨울 거리@m,out,winter,abroad",
+"나이아가라 폭포 유람선@m,out,biz,day,abroad",
+"칸쿤 해변 리조트@m,r,out,abroad",
+"멕시코시티 타코 노점@m,c,out,eat,abroad",
+"아바나 올드카 드라이브@m,out,abroad",
+"리우 코파카바나 해변@m,out,abroad",
+"마추픽추@m,out,day,abroad",
+"우유니 소금사막@m,out,abroad",
+"부에노스아이레스 탱고 바@m,in,biz,night,abroad",
+"파타고니아 빙하 트레킹@m,out,day,abroad",
+"시드니 오페라하우스 앞@m,out,abroad",
+"시드니 본다이 비치@m,out,abroad",
+"멜버른 골목 카페@m,in,biz,eat,abroad",
+"골드코스트 해변@m,out,abroad",
+"퀸스타운 호숫가@m,out,abroad",
+"테카포 호수 별 보기@m,out,night,abroad",
+"피지 리조트 해변@m,r,out,abroad",
+"케이프타운 테이블마운틴@m,out,day,abroad",
+"마사이마라 사파리 지프@m,r,out,biz,day,abroad",
+"마라케시 시장@m,out,crowd,abroad",
+"기자 피라미드 앞@m,out,day,abroad",
+"경부선 열차 침대칸@g,in",
+"관부연락선 갑판@g,out",
+"요코하마 항구@g,out,abroad"],
+event:[
+"공항에서 비행기가 몇 시간 지연된다@m,n",
+"{F}의 여권이 안 보여 둘이 가방을 다 뒤진다@m,n,!abroad",
+"예약한 숙소에 착오가 생겨 방 하나를 같이 써야 한다@m,n,g,s,f",
+"말이 안 통해 {M:이} 손짓 발짓으로 길을 묻는다@m,n,g,!abroad",
+"현지 사람이 둘을 신혼여행 온 부부로 착각한다",
+"{F:이} 시차 때문에 대낮에 꾸벅꾸벅 존다@m,n,!abroad",
+"환전한 돈이 모자라 카드도 안 되는 가게에서 곤란해진다@m,n,!biz,!abroad",
+"소매치기가 {M}의 지갑을 노린다@!crowd",
+"{M:이} 현지 음식을 먹고 배탈이 난다",
+"둘이 서로 몰래 기념품을 사 둔다@m,n,g",
+"길거리 화가가 둘의 초상화를 그려주겠다고 다가온다@!out,nolate",
+"{M:이} {F}의 인생 사진을 찍어주려고 바닥에 엎드린다@m,n,!out",
+"돌아갈 날이 다가오자 {F:이} 말수가 줄어든다",
+"{M:이} 현지 말로 미리 외워 온 말을 {F}에게 해준다@m,n,g,!abroad",
+"가이드가 둘에게 커플 사진을 찍어주겠다고 나선다@m,n,!biz",
+"현지 축제 행렬이 지나가 둘이 사람들 틈에 휩쓸린다@!out",
+"휴대폰 지도도 안 터지는 곳에서 길을 잃는다@m,!out",
+"{F:이} 충동적으로 내일 일정을 통째로 바꾸자고 한다",
+"{M:이} 몰래 준비한 깜짝 일정을 공개한다",
+"현지 남자가 {F}에게 꽃을 건네며 말을 건다@!out,!abroad",
+"{M:이} 쇼핑백을 양손 가득 들고 {F:을} 따라다닌다@m,n,r",
+"돈을 아끼려고 둘이 편의점 음식으로 끼니를 때운다@m,c",
+"{F:이} 현지 옷을 사 입고 나타나 {M:이} 넋을 놓는다@!abroad",
+"{M:이} 급한 연락을 받고 귀국을 고민한다@m,!abroad",
+"{F:이} 높은 곳이 무서워 {M}의 팔을 꽉 붙잡는다",
+"갑작스러운 폭우로 예약한 투어가 취소된다@m,n",
+"{M:이} 거리 음악에 맞춰 {F}에게 춤을 청한다@!out",
+"그날 밤 숙소로 돌아와 둘이 창가에서 오늘 본 풍경 얘기를 한다",
+"그날 밤 숙소에서 둘이 처음으로 같은 방에서 잠들 준비를 하며 어색해진다",
+"{F:이} 여행 일기에 {M}에 대해 뭔가 적다가 들킨다@m,n,g,s,f",
+"기차가 연착돼 역에서 밤을 새워야 한다@g",
+"배멀미를 하는 {F:이} 갑판 난간을 붙잡고 버틴다@g",
+"고갯길에서 날이 저물어 주막에 묵어야 한다@j",
+"나룻배가 끊겨 강을 건너지 못한다@j",
+"여정 중에 {F}의 짚신 끈이 끊어진다@j"]},
+home:{label:"집 안",
+place:[
+"거실 소파@m,n,in","주방@m,n,in","침실@m,n,in","욕실 앞 복도@m,n,in","베란다@m,n,in","현관@m,n,g,in","식탁@m,n,in",
+"저택 서재@m,n,r,in","드레스룸@m,r,in","저택 계단@m,n,r,in","저택 정원@m,n,r,out","차고@m,n,r,in","와인 셀러@m,r,in","저택 옥상 테라스@m,r,out","손님용 게스트룸@m,n,r,in",
+"노란 장판 깔린 안방@m,n,c,in","옥탑방 평상@m,n,c,out","반지하 창가@m,n,c,in","좁은 원룸@m,c,in","부엌 겸 거실@m,n,c,in","공용 계단참@m,n,c,in","연탄 아궁이 앞@n,c,in",
+"양옥 응접실@g,r,in","다다미방@g,in","하숙집 방@g,c,in","툇마루@g,j,out","축음기 있는 서재@g,r,in",
+"사랑채@j,r,in","안채 대청마루@j,in","별당@j,r,in","후원 연못@j,r,out","아궁이 앞 부엌@j,in","장독대@j,out","행랑채@j,c,in","초가집 방@j,c,in","마당 평상@j,c,out"],
+event:[
+"{F:이} 높은 곳 물건을 꺼내려고 까치발을 든다@!in","{M:이} {F}의 방문 앞에서 들어갈지 말지 망설인다","씻고 나와 머리를 말리던 {F}와 마주친다","새벽에 배가 고파 둘이 부엌에서 마주친다@!late","{F:이} 청소하다 {M}의 오래된 물건을 발견한다","둘이 같이 음식을 만들다 엉망이 된다","{M:이} 앉은 채로 잠들어 {F:이} 이불을 덮어준다","천둥 번개가 쳐서 {F:이} 잠을 못 잔다@!n2","벌레가 나타나 집 안이 난리가 난다","{M:이} 손님을 갑자기 집에 데려온다","{F:이} {M}의 옷을 손질하다 망가뜨린다","{M:이} {F}에게 음식 만드는 법을 처음 배운다","{F:이} 물건 자리를 바꾸자고 한다","{M:이} 몰래 {F} 방 앞에 쪽지를 두고 간다","{F:이} 아파서 {M:이} 처음으로 죽을 끓인다","둘이 실수로 같은 그릇에 담긴 걸 나눠 먹는다","{F:이} 앓는 소리를 내자 {M:이} 밤새 곁을 지킨다@!n2","정원에서 둘이 같이 꽃을 심는다@!out","{M:이} 뒤에서 {F}의 머리를 묶어준다","{F:이} {M}의 흐트러진 옷깃을 바로잡아준다",
+"{M:이} 몰래 주문한 {F}의 옷이 택배로 도착한다@m,!d","{M:이} 일하다 잠든 사이 {F:이} 노트북 옆에 커피를 엎는다@m","보일러가 고장 나 전기난로 하나로 버텨야 한다@m,n,c","욕실 문이 고장 나 안에서 안 열린다@m,n","같은 영화를 보다 결말에 대한 의견이 갈린다@m,n","크리스마스트리를 같이 꾸민다@m,n,g,winter","집에 있던 와인으로 둘이 처음 같이 술을 마신다@m,n,g","음악을 틀어놓고 {F:이} {M}에게 춤추자고 손을 내민다@m,n,g","집사가 들어오다 둘이 붙어 있는 걸 본다@m,n,g,r","{M}의 비서가 서류를 들고 집까지 찾아온다@m,n,r","벽이 얇아 옆집 소리가 다 들려서 둘 다 민망해진다@m,n,c","천장에서 비가 새서 대야를 받쳐야 한다@m,n,g,c,!rain","{M:이} 처음 보는 좁은 집을 신기한 듯 둘러본다@m,n,c","연탄을 갈다 {F}의 얼굴에 검댕이 묻는다@n,c",
+"축음기 레코드를 같이 고른다@g","{F:이} 양장 단추를 혼자 못 채워 {M}에게 부탁한다@g",
+"하인이 문밖에 서 있어 둘 다 목소리를 낮춘다@j,r","{F:이} 등잔불 아래서 {M}의 해진 옷을 꿰맨다@j","{M:이} 장작을 패다 손에 가시가 박힌다@j","{F:이} 다듬이질하는 걸 {M:이} 옆에서 지켜본다@j","문풍지 너머로 {M}의 그림자가 비친다@j"]}
+}};
+
+// 코스 데이터 — w: 많이 걷는 곳
+const COURSE={
+m:{slots:["meal1","act","rest","meal2","night"],
+ meal1:["성수동 브런치 카페","한남동 브런치 카페","연남동 브런치 카페","서촌 베이커리 카페","호텔 브런치 뷔페@r","압구정 스시 오마카세@r","종로 한정식 (룸 예약)@r","을지로 평양냉면집","망원시장 먹거리 투어@c,w","동네 분식집 떡볶이@c","시장 칼국수집@c"],
+ act:["한남동 편집숍","백화점 명품관 쇼핑@r","리움미술관 관람","국립현대미술관 관람","더현대서울 쇼핑","성수동 팝업스토어 투어@w","공방에서 커플링 만들기","공방에서 커플 향수 만들기","커플 스파 & 마사지@r","아이맥스 영화","코엑스 별마당 도서관","서울숲 산책@w","반포 한강공원 피크닉@w","놀이공원@w","남산 케이블카","북촌 한옥 스냅 촬영 (작가 미리 섭외)@w","경복궁 한복 데이트@w","예술의전당 클래식 공연@r","야구장 직관@w","방탈출 카페","보드게임 카페@c","동네 영화관 조조할인@c","코인노래방@c","오락실 인형뽑기@c","한강 요트 투어@r"],
+ rest:["삼청동 한옥 찻집","한남동 디저트 카페","성수동 대형 카페","연희동 디저트 카페","호텔 라운지 애프터눈티@r","편의점 앞 파라솔@c","프랜차이즈 카페@c"],
+ meal2:["청담동 프렌치 레스토랑@r","한남동 한우 오마카세@r","압구정 이탈리안 레스토랑","이태원 스테이크하우스","호텔 중식당 (룸 예약)@r","을지로 노포 갈비집","성수동 와인 비스트로","고층 레스토랑 창가석@r","동네 삼겹살집@c","시장 순대국밥집@c"],
+ night:["성수동 루프탑 바","이태원 재즈바","연남동 LP바","청담동 위스키 바@r","한남동 와인바","남산 야경 드라이브@r","한강 야경 산책@w","을지로 노가리 골목@c","포장마차@c","한강 편의점 라면@c"],
+ stay:["호텔 스위트룸 체크인@r","호텔 체크인","게스트하우스 체크인@c"],end:"귀가"},
+n:{slots:["meal1","act","rest","meal2","night"],
+ meal1:["경양식 돈가스집","분식집 떡볶이@c","백화점 식당가@r","호텔 커피숍 샌드위치@r","중국집 짜장면@c"],
+ act:["롤러스케이트장","오락실@c","비디오방","레코드 가게 구경","대학로 연극","놀이공원@w","동시상영 극장@c","압구정 로데오 쇼핑@r","63빌딩 전망대@r","서점 음반 코너","고수부지 자전거 타기@w","만화방@c"],
+ rest:["커피숍","압구정 카페@r","동네 빵집","지하상가 구경@w"],
+ meal2:["경양식 레스토랑","삼겹살집@c","호텔 레스토랑@r","중국집 코스요리","통닭집@c"],
+ night:["노래방","포장마차@c","호프집","마이카 드라이브@r","한강 고수부지 산책@w"],
+ stay:["호텔 체크인@r","여관 투숙@c","콘도 체크인"],end:"귀가"},
+g:{slots:["meal1","act","rest","meal2","night"],
+ meal1:["양식당 오므라이스","설렁탕집@c","백화점 식당 런치@r","국숫집@c"],
+ act:["본정통 산책@w","백화점 구경@r","활동사진관 관람","창경원 벚꽃 구경@w","경성역 구경","남산 산책@w","한강 인도교 산책@w","서점 구경","사진관 기념사진","전차 타고 시내 한 바퀴"],
+ rest:["다방에서 커피","제과점 카스텔라","백화점 옥상정원 휴게실@r"],
+ meal2:["호텔 그릴 비프스테이크@r","양식당 함박스테이크","청요리집","국밥집@c"],
+ night:["다방 레코드 감상","한강 야경","전차 타고 귀갓길","축음기 있는 바@r"],
+ stay:["호텔 객실@r","여관@c"],end:"귀가"},
+j:{slots:["meal1","act","rest","meal2","night"],times:["이른 아침","한낮","오후","해 질 녘","밤"],
+ meal1:["주막 국밥@c","장터 국수@c","별당 아침상@r","나루터 주막 장국"],
+ act:["저잣거리 구경@w","장날 구경@w","서책방 구경","방물가게에서 노리개 고르기","산사 참배@w","연못가 정자 산책@r","단옷날 그네 구경","뱃놀이@r","꽃놀이@w","활쏘기 구경"],
+ rest:["정자에서 다과@r","주막 평상에서 막걸리 한 사발@c","강가 버드나무 그늘","약과 파는 좌판@c"],
+ meal2:["주막 저녁상@c","별당 저녁 상차림@r","나루터 주막"],
+ night:["연등 구경","달맞이","강가 반딧불이 구경","담장 아래 밀회","통금 종 치기 전 귀가"],
+ stay:["주막 객방@c","사랑채에 묵기@r","절 요사채에 묵기"],end:"귀가"}};
+
+/* ---------- 세계관 추가분 (로판 f · 센티넬버스 s · 무협 w) + 형편 최상층 top · 최하층 low ---------- */
+const EXTRA={
+time:["아침 티타임 무렵@f,d,am","정오 종이 울릴 때@f,d","오후 티타임@f,d","축제 첫날 오후@f,d","해 질 녘@f,n2","무도회가 한창인 밤@f,n2","자정 종이 울릴 때@f,n2,late"],
+weather:[],
+prop:["가문 문장이 새겨진 반지@f","레이스 장갑@f","실크 손수건@f","밀랍으로 봉인한 편지@f","가면무도회 가면@f","마정석 목걸이@f","장미 한 송이@f","깃털 부채@f","은빛 단검@f","찻잔 세트@f","무도회 초대장@f,r","회중시계@f",
+"검집@w","옥패@w","금창약 병@w","비급 서책@w","호리병 술@w","쥘부채@w","은침@w","얼굴을 가리는 면사@w","영약 환단@w","옥비녀@w","연등@w",
+"억제제 앰플@s","센터 출입증@s","소음 차단 이어플러그@s","등급 표시 팔찌@s","각인 방지링@s","가이딩 기록지@s",
+"밀린 고지서@m,n,s,low","편의점 폐기 도시락@m,s,low","가문 인장@f,j,w,top","블랙카드@m,s,top"],
+twist:["황제의 칙령이 내려온다@f","{A}의 마력이 불안정하게 날뛴다@f","{A:이} 독이 든 잔을 알아챈다@f,!eat","{A}에게 결투 신청이 들어온다@f","가문의 기사가 {A:을} 찾으러 온다@f,r","{A}의 정혼자가 나타난다@f","사교계에 두 사람에 대한 소문이 퍼진다@f","{A:이} 신분을 숨기고 있었다는 게 들킬 뻔한다@f","마차가 습격당한다@f,!out","{A}에게 급한 전갈이 와서 자리를 떠야 한다@f,w","{A:이} 접은 서신을 {B}의 손에 몰래 쥐여준다@f,w","황실 근위대가 {A:을} 호위하러 따라붙는다@f,top",
+"{A}에게 주화입마 징조가 보인다@w","무림맹의 소집령이 떨어진다@w","{A}의 얼굴이 그려진 수배 방이 붙어 있다@w","{A}의 문파 장로가 둘을 목격한다@w","어디선가 날아온 암기가 {A}의 옷자락을 스친다@w","{A:이} 독에 당해 내공이 흐트러진다@w","적대 문파 무인들이 길을 막아선다@w,!out",
+"근처에 게이트가 열렸다는 재난문자가 온다@s","{A}의 감각이 갑자기 과부하된다@s","센터 감독관이 둘의 가이딩 기록을 문제 삼는다@s","다른 가이드가 {A}에게 다가와 매칭을 제안한다@s","{A}에게 각인 반응이 갑자기 나타난다@s","센터에서 긴급 출동 호출이 온다@s",
+"{A}의 집안 회장이 둘의 관계를 알게 된다@m,n,s,top","기자들이 두 사람을 몰래 따라붙는다@m,n,s,top","월세가 밀려 집주인에게서 전화가 온다@m,n,s,low","{A:이} 아르바이트 대타 요청을 받고 곤란해진다@m,s,low","{A}의 해진 옷소매를 {B:이} 보게 된다@f,j,w,low"],
+cats:{
+date:{place:["황궁 장미 정원@f,r,out,day","수도 중앙광장 축제@f,out,crowd","황실 무도회장@f,top,in,biz,night","오페라 극장 귀빈석@f,r,in,biz,night","귀족 전용 살롱@f,r,in,biz,eat","수도 번화가 양장점@f,in,biz,day","디저트 가게@f,in,biz,eat,day","호숫가 보트 위@f,out","마차 안@f,in","사냥 대회 천막@f,r,out,day","왕립 도서관@f,in,day","신전 앞 분수대@f,out","등불 야시장@f,c,out,night,crowd","시장 노점 거리@f,c,out,eat,day,crowd","경마장 귀빈석@f,r,out,biz,day","가면무도회장@f,r,in,biz,night","빈민가 뒷골목@f,low,out",
+"객잔 2층 창가@w,in,biz,eat","서호 유람선@w,r,out,biz","등불 축제 거리@w,out,night,crowd","대나무숲@w,out","폭포 아래 너럭바위@w,out","절벽 위 정자@w,out","저잣거리@w,out,day,crowd","찻집@w,in,biz,eat","무술 대회 관중석@w,out,day,crowd","산중 온천@w,out","주루 별실@w,r,in,biz,eat","다리 밑 거지 소굴@w,low,out",
+"센티넬 센터 가이딩룸@s,in","센터 로비 카페@s,in,biz,eat","게이트 통제구역 앞@s,out","센터 훈련장@s,in","백색소음 처리된 전용 라운지@s,r,in",
+"프라이빗 제트기 안@m,s,top,in","재벌가 본가 연회장@m,n,s,top,in,night","편의점 야간 카운터@m,s,low,in,biz,24","PC방 구석 자리@m,n,s,low,in,biz,24"],
+event:["{M:이} {F}의 손등에 입을 맞추며 인사한다@f","{M:이} {F}에게 첫 춤을 신청한다@f","{F}의 정혼자가 두 사람 앞에 나타난다@f","다른 영애가 {M}에게 노골적으로 접근한다@f","{F:이} 드레스 자락을 밟혀 넘어질 뻔한다@f","{M:이} 사교계 사람들 앞에서 {F}의 편을 든다@f","{M:이} 가문 문장이 새겨진 반지를 {F}에게 끼워준다@f","가면을 쓴 {M:이} 정체를 숨긴 채 {F}에게 말을 건다@f","귀족들이 두 사람의 신분 차이를 두고 수군거린다@f","{M:이} 경매에 나온 보석을 {F:을} 위해 낙찰받는다@f,r",
+"{M:이} 내공으로 {F}의 언 손을 데워준다@w","{M:이} {F}에게 검법 한 수를 가르쳐준다@w","객잔에서 시비가 붙어 싸움이 벌어진다@w,!biz","{M:이} 경공으로 {F:을} 안고 지붕 위를 달린다@w,!out","{F:이} 다친 {M}에게 금창약을 발라준다@w","{M:이} 술 시합을 하자고 제안한다@w,!eat","{F}의 사형이 둘 사이를 의심한다@w","{M:이} {F}의 혈도를 짚어 움직이지 못하게 한다@w",
+"{M:이} 감각 과부하로 괴로워하자 {F:이} 손을 잡아 가이딩한다@s","둘의 매칭률 검사 결과가 나온다@s","폭주 직전인 {M:이} {F}의 손을 놓지 않으려 한다@s","다른 가이드가 {M}에게 가이딩을 해주겠다고 나선다@s","게이트 경보가 울려 {M:이} 출동해야 한다@s","센터가 두 사람을 전담 페어로 지정한다@s","{F:이} 가이딩을 하다 {M}의 감정이 흘러들어온다@s",
+"{M}의 집안 어른이 데이트 장소에 경호원을 붙인다@m,n,s,top","{M:이} 데이트 비용을 모으려고 며칠째 아르바이트를 했다@m,n,s,low"]},
+daily:{place:["시장@f,out,biz,day,crowd,early","대장간@f,out,biz,day","약초상@f,in,biz,day","신전 치유소@f,in,biz,day","용병 길드 접수처@f,in,biz","빵집@f,c,in,biz,early","공동 세탁장@f,c,out,day","광장 게시판 앞@f,out","마구간@f,out","선술집@f,c,in,biz,eat,night","황궁 집무실 복도@f,top,in",
+"객잔 1층@w,in,biz,eat,early","약방@w,in,biz,day,early","대장간@w,out,biz,day","표국 앞마당@w,out","장터@w,out,day,crowd","우물가@w,out","나루터@w,out","관도 옆 찻집@w,out,biz,eat",
+"센터 의무실@s,in","각성자 전용 병동@s,in,day","센터 식당@s,in,biz,eat","센터 기숙사 복도@s,in",
+"고시원 공용 주방@m,s,low,in","그룹 본사 회장실 앞@m,n,s,top,in,day"],
+event:["{F:이} 시녀 일을 하다 {M}과 마주친다@f,c","{M}의 가문에 혼담이 들어온다@f,r","마차 바퀴가 빠져 길에서 멈춘다@f","{M:이} 신분을 숨기고 평민 거리를 돌아다닌다@f,r","전령이 편지를 엉뚱한 사람에게 전한다@f","{F:이} 신전에서 축복 의식을 받는다@f",
+"{M:이} 표국 일을 맡아 길 떠날 채비를 한다@w","{F:이} 저잣거리에서 가짜 비급을 파는 사기꾼에게 속을 뻔한다@w","{M:이} 거지 아이에게 만두를 사준다@w","관병이 길을 막고 검문한다@w,!out",
+"{F:이} 정기 가이딩 일정을 깜빡한다@s","{M}의 등급 재측정 날이다@s","센터에서 둘에게 검진 결과를 통보한다@s","{M:이} 주변 소음 때문에 신경이 곤두서 있다@s"]},
+home:{place:["공작저 응접실@f,r,in","공작저 서재@f,r,in","드레스룸@f,r,in","유리 온실@f,r,in","저택 정원@f,r,out","침실 발코니@f,out","주방@f,in","하녀 숙소@f,c,in","다락방@f,c,in","오두막 난롯가@f,c,in","황궁 침궁@f,top,in","별궁 정원@f,top,out","빈민가 판잣집@f,low,in",
+"세가 본채@w,r,in","연무장@w,out","처소 툇마루@w,out","약초밭@w,out","동굴 수련처@w,in","초가 오두막@w,c,in","객잔 상방@w,r,in","객잔 하방@w,c,in",
+"센터 기숙사 방@s,in","S급 전용 숙소@s,r,in","백색소음실@s,in",
+"고시원 방@m,s,low,in","재벌가 본가 별채@m,n,s,top,in","펜트하우스 거실@m,s,top,in"],
+event:["{F:이} 드레스 끈을 혼자 못 묶어 쩔쩔맨다@f","하녀장이 둘이 함께 있는 걸 목격한다@f,r","벽난로 앞에서 둘이 와인을 나눠 마신다@f","{M}에게 협박 편지가 도착한다@f,r","{F:이} 정원에서 독초를 발견한다@f",
+"{M:이} 운기조식 중이라 {F:이} 곁을 지킨다@w","{F:이} {M}의 상처에 감은 천을 갈아준다@w","둘이 같은 방에서 밤새 번갈아 경계를 선다@w",
+"{M:이} 소음을 못 견뎌 {F}의 방으로 찾아온다@s","{F:이} 잠든 {M}의 손을 잡고 수면 가이딩을 한다@s","밤중에 {M}의 폭주 경보가 울린다@s"]},
+trip:{place:["남부 휴양 영지 해변@f,out","북부 대공령 설원 성채@f,out,winter","신성국 대신전@f,in,day","온천 마을@f,out,biz","국경 요새@f,out","수도 근교 별장@f,r,in","마탑 꼭대기@f,in","꽃의 도시 축제@f,out,spring,crowd","항구 도시 부두@f,out,crowd","범선 선실@f,in",
+"무당산 자락@w,out,day","화산 정상@w,out","소림사 산문 앞@w,out,day","장강 배 위@w,out","사막 객잔@w,in,biz,eat","낙양 모란 축제@w,out,spring,crowd","항주 서호@w,out","사천 당가 마을@w,out","북해 빙궁@w,out,winter",
+"해외 게이트 합동 작전 기지@s,abroad,out","센티넬 전용 휴양 시설@s,in"],
+event:["마차로 가는 길에 산적을 만난다@f,!out","영지민들이 {M:을} 영주로 알고 환영한다@f","배를 타고 가다 폭풍을 만난다@f",
+"길을 가다 날이 저물어 객잔에 묵어야 한다@w","객잔에 빈방이 하나뿐이라 같은 방을 써야 한다@w","산적 떼가 길을 막아선다@w,!out","나룻배가 끊겨 강을 건너지 못한다@w",
+"출장 임무 중 둘이 같은 숙소를 배정받는다@s","현지 센터 가이드가 {M}에게 관심을 보인다@s"]}
+}};
+['time','weather','prop','twist'].forEach(k=>RAW[k].push(...EXTRA[k]));
+for(const c in EXTRA.cats){RAW.cats[c].place.push(...EXTRA.cats[c].place);RAW.cats[c].event.push(...EXTRA.cats[c].event)}
+
+// 코스: 로판·무협 풀, 현대 풀에 센티넬·최상층·최하층 추가
+COURSE.f={slots:["meal1","act","rest","meal2","night"],times:["아침 티타임 무렵","정오","오후 티타임","해 질 녘","밤"],
+ meal1:["저택 아침 티타임@r","수도 카페 브런치","시장 노점 빵@c","황궁 조찬@top"],
+ act:["양장점에서 드레스 맞추기@r","왕립 도서관","황궁 장미 정원 산책@r,w","경마장 관람@r","수도 축제 구경@w","오페라 관람@r","호수 보트 타기","사냥 대회 관람@r","신전 참배","시장 구경@c,w","보석상 구경@r"],
+ rest:["귀족 살롱 티타임@r","디저트 가게","분수대 광장 벤치@c"],
+ meal2:["귀족 연회 만찬@r","레스토랑 코스요리@r","선술집 스튜@c","여관 저녁"],
+ night:["황실 무도회@top","가면무도회@r","등불 야시장@c","마차로 밤거리 드라이브","발코니에서 별 보기"],
+ stay:["공작저 객실@r","수도 고급 여관","허름한 여관@c","황궁 별궁@top"],end:"저택으로 귀가"};
+COURSE.w={slots:["meal1","act","rest","meal2","night"],times:["이른 아침","한낮","오후","해 질 녘","밤"],
+ meal1:["객잔 만두@c","찻집 딤섬","세가 아침상@r"],
+ act:["저잣거리 구경@w","무술 대회 관람","대나무숲 산책@w","서호 유람선@r","사찰 참배@w","연무장 대련","폭포 아래 수련@w","약재 시장 구경"],
+ rest:["찻집에서 차 한 잔","정자에서 다과","객잔 2층 창가"],
+ meal2:["객잔 술상","주루 연회@r","노점 국수@c"],
+ night:["등불 축제@w","지붕 위 달구경","강가 반딧불이 구경","주루에서 술 한잔"],
+ stay:["객잔 상방@r","객잔 하방@c","세가 별채@r","산속 동굴"],end:"귀가"};
+COURSE.m.act.push("센터 훈련장 대련@s","게이트 정찰 후 산책@s,w","백색소음 라운지에서 휴식@s","헬기 투어@top","전시회 VIP 프리뷰@top","무료 전시 관람@low","공원 벤치 산책@low,w");
+COURSE.m.meal1.push("센터 식당 아침@s","편의점 삼각김밥@low");
+COURSE.m.meal2.push("본가 셰프 출장 만찬@top","센터 근처 고깃집@s");
+COURSE.m.night.push("펜트하우스 야경@top","옥상에서 캔맥주@low");
+COURSE.m.stay.push("센터 숙소@s","펜트하우스@top","찜질방@low");
+
+// 여행 코스 도시 — a:1 해외, a:0 국내 / meal 아침·점심, act 구경, rest 쉬기, din 저녁, night 밤, stay 숙소
+const CITIES=[
+{n:"파리",a:1,meal:"호텔 조식 크루아상|마레 지구 브런치 카페|빵집 바게트 샌드위치@c",act:"에펠탑 전망대|루브르 박물관@w|오르세 미술관|몽마르트르 언덕 산책@w|샹젤리제 쇼핑@r|센강 유람선|베르사유 궁전@w|생제르맹 서점 구경",rest:"노천 카페 에스프레소|마카롱 가게",din:"미슐랭 레스토랑@r|비스트로 스테이크 프리트|와인 바 치즈 플래터",night:"에펠탑 조명 쇼 보기|센강 야경 산책@w|물랑루즈 쇼@r",stay:"에펠탑 뷰 호텔@r|마레 지구 부티크 호텔|다락방 숙소@c"},
+{n:"런던",a:1,meal:"잉글리시 브렉퍼스트|버로우 마켓 길거리 음식@w|코벤트가든 브런치 카페",act:"대영박물관|타워브리지 산책@w|웨스트엔드 뮤지컬 관람|노팅힐 골목 산책@w|백화점 쇼핑@r|하이드파크 보트 타기|런던아이@m|해리포터 스튜디오 투어@m",rest:"애프터눈 티@r|펍에서 맥주 한 잔|골목 카페 플랫화이트",din:"미슐랭 레스토랑@r|펍 피시 앤 칩스|인도 커리 레스토랑",night:"템스강 야경 산책@w|루프탑 바|재즈 클럽",stay:"템스강 뷰 호텔@r|부티크 호텔|호스텔 2인실@c"},
+{n:"로마",a:1,meal:"카페 코르네토와 카푸치노|호텔 조식|조각 피자 가게@c",act:"콜로세움@w|바티칸 박물관@w|트레비 분수 동전 던지기|스페인 계단|판테온|베스파 투어|명품 거리 쇼핑@r",rest:"젤라또 가게|광장 노천 카페",din:"트라스테베레 트라토리아|루프탑 레스토랑@r|카르보나라 맛집",night:"트레비 분수 야경|나보나 광장 산책@w|와인 바",stay:"스페인 계단 근처 호텔@r|부티크 호텔|B&B@c"},
+{n:"바르셀로나",a:1,meal:"보케리아 시장 타파스@w|츄러스 가게|호텔 조식",act:"사그라다 파밀리아|구엘 공원@w|카사 바트요|고딕 지구 산책@w|바르셀로네타 해변|축구 경기 직관@w|몬주익 케이블카",rest:"해변 바 상그리아|골목 카페",din:"빠에야 레스토랑|타파스 바 투어@w|해산물 레스토랑@r",night:"플라멩코 공연|몬주익 분수 쇼|루프탑 바",stay:"해변 호텔@r|고딕 지구 아파트|호스텔@c"},
+{n:"프라하",a:1,meal:"호텔 조식|굴뚝빵 노점@c|카페 브런치",act:"카를교 산책@w|프라하성@w|천문시계 정각 쇼|구시가지 광장|블타바강 보트|맥주 공장 투어",rest:"오래된 카페 케이크|맥주 펍",din:"꼴레뇨 레스토랑|체코 전통 식당|강변 레스토랑@r",night:"카를교 야경@w|재즈 바|클래식 공연@r",stay:"강변 호텔@r|구시가지 아파트|게스트하우스@c"},
+{n:"스위스",a:1,meal:"호텔 조식|베이커리",act:"융프라우요흐 산악열차|패러글라이딩|툰 호수 유람선|그린델발트 하이킹@w|라우터브루넨 폭포|마테호른 전망대@r",rest:"산장 핫초코|호숫가 벤치",din:"치즈 퐁듀|산장 레스토랑|호텔 다이닝@r",night:"별 보기|호텔 스파@r|호숫가 산책@w",stay:"마테호른 뷰 호텔@r|샬레 숙소|유스호스텔@c"},
+{n:"뉴욕",a:1,meal:"베이글 가게|브런치 카페|델리 샌드위치@c",act:"센트럴파크 산책@w|메트로폴리탄 미술관|브루클린 브리지 걷기@w|엠파이어스테이트 전망대|5번가 쇼핑@r|자유의 여신상 페리|브로드웨이 뮤지컬|하이라인 산책@m,w",rest:"소호 카페|첼시마켓@m",din:"스테이크하우스@r|피자 한 조각@c|첼시 레스토랑",night:"타임스스퀘어 야경|루프탑 바|재즈 클럽",stay:"센트럴파크 뷰 호텔@r|미드타운 호텔|브루클린 숙소@c"},
+{n:"하와이",a:1,meal:"팬케이크 가게|아사이볼|로코모코",act:"와이키키 서핑 강습|다이아몬드헤드 하이킹@w|하나우마베이 스노클링|쿠알로아 랜치|노스쇼어 드라이브|알라모아나 쇼핑@r",rest:"해변 파라솔|셰이브 아이스",din:"오션뷰 레스토랑@r|포케 가게@c|루아우 디너쇼",night:"해변 산책@w|선셋 크루즈@r|호텔 바",stay:"오션뷰 리조트@r|와이키키 호텔|콘도@c"},
+{n:"도쿄",a:1,meal:"호텔 조식|규동 가게@c|시장 초밥",act:"시부야 교차로|오모테산도 쇼핑@r|아사쿠사 센소지@w|디즈니씨@m,w|미디어아트 전시관@m|도쿄타워|하라주쿠 골목@w|긴자 백화점@r",rest:"킷사텐 커피|디저트 가게",din:"오마카세@r|이자카야|라멘 가게@c",night:"롯폰기 야경|골든가이 바|도쿄타워 야경",stay:"고층 호텔@r|비즈니스 호텔|캡슐 호텔@c"},
+{n:"오사카·교토",a:1,meal:"호텔 조식|타코야키 노점@c|교토 두부 정식",act:"기요미즈데라@w|후시미 이나리 신사@w|아라시야마 대나무숲@w|기온 거리 기모노 체험|유니버설 스튜디오@m,w|오사카성|나라 사슴공원@w",rest:"말차 카페|녹차 디저트 가게",din:"가이세키 요리@r|오코노미야키|야키니쿠",night:"도톤보리 야경|공중정원 전망대|료칸 노천탕@r",stay:"료칸@r|비즈니스 호텔|게스트하우스@c"},
+{n:"방콕",a:1,meal:"호텔 조식|길거리 팟타이@c|쌀국수 노점@c",act:"왕궁@w|왓 아룬|주말시장@w|타이 마사지|짜오프라야강 보트|쿠킹 클래스",rest:"망고 스티키라이스|카페",din:"루프탑 레스토랑@r|해산물 식당|야시장 먹거리@w",night:"루프탑 바|카오산로드 펍@c|야시장 산책@w",stay:"강변 럭셔리 호텔@r|호텔|호스텔@c"},
+{n:"발리",a:1,meal:"아사이볼|나시고렝",act:"우붓 논길 산책@w|원숭이 숲|스미냑 해변 서핑|요가 클래스|스파@r|따나롯 사원 석양|정글 그네 사진 명소@m",rest:"비치 클럽@r|정글 뷰 카페",din:"짐바란 해산물 디너|레스토랑",night:"비치 클럽 파티|풀빌라에서 별 보기@r",stay:"풀빌라@r|리조트|게스트하우스@c"},
+{n:"싱가포르",a:1,meal:"카야 토스트|호커센터 아침@c",act:"가든스 바이 더 베이@m|센토사 섬|유니버설 스튜디오@m|차이나타운|오차드로드 쇼핑@r|머라이언 공원",rest:"카페|호텔 라운지@r",din:"칠리크랩|호커센터@c|파인다이닝@r",night:"마리나베이샌즈 루프탑@m,r|클락키 강변 바|레이저 쇼@m",stay:"마리나베이샌즈@m,r|호텔|캡슐 호텔@c"},
+{n:"홍콩",a:1,meal:"딤섬 가게|밀크티와 토스트@c|완탕면@c",act:"빅토리아 피크 트램|스타페리|침사추이 산책@w|디즈니랜드@m|란콰이펑|하버시티 쇼핑@r",rest:"에그타르트 가게|홍콩식 카페",din:"북경오리@r|해산물 레스토랑|노점 국수@c",night:"심포니 오브 라이트@m|루프탑 바|야시장 산책@w",stay:"하버뷰 호텔@r|호텔|게스트하우스@c"},
+{n:"다낭",a:1,meal:"반미 가게@c|쌀국수",act:"미케 해변|바나힐@m|호이안 구시가지@w|마블 마운틴|바구니배 타기|마사지",rest:"코코넛 커피 카페|해변 바",din:"해산물 식당|호이안 레스토랑",night:"호이안 등불 거리@w|용다리 불쇼@m|루프탑 바",stay:"해변 리조트@r|호텔|홈스테이@c"},
+{n:"시드니",a:1,meal:"브런치 카페|호텔 조식",act:"오페라하우스 투어|하버브리지 클라이밍@m,r|본다이 해변|블루마운틴@w|타롱가 동물원|달링하버",rest:"플랫화이트 카페|해변 벤치",din:"하버뷰 레스토랑@r|피시 앤 칩스@c|바비큐",night:"오페라하우스 야경|서큘러키 산책@w|루프탑 바",stay:"하버뷰 호텔@r|호텔|백패커스@c"},
+{n:"제주",a:0,meal:"고기국수@c|해장국|오션뷰 브런치 카페",act:"성산일출봉@w|우도 자전거@w|협재 해변|오름 트레킹@w|승마 체험|귤 따기 체험|아쿠아리움@m",rest:"오션뷰 카페|감귤 디저트 카페",din:"흑돼지 구이|갈치조림|해산물 코스@r",night:"해변 산책@w|호텔 수영장@r|동문시장 야시장@m,w",stay:"오션뷰 리조트@r|펜션|게스트하우스@c"},
+{n:"부산",a:0,meal:"돼지국밥@c|밀면|브런치 카페",act:"해운대 해변|감천문화마을@m,w|광안리|흰여울마을@m,w|자갈치시장|해동용궁사|해변 열차@m",rest:"오션뷰 카페|씨앗호떡 노점@c",din:"회 센터|조개구이|호텔 레스토랑@r",night:"광안대교 야경|마린시티 야경@m|해변 산책@w",stay:"오션뷰 호텔@r|호텔|게스트하우스@c"},
+{n:"강릉",a:0,meal:"초당순두부|브런치 카페",act:"안목해변 커피거리|경포대|정동진|주문진 수산시장|오죽헌",rest:"바다 뷰 카페|커피 로스터리",din:"물회|장칼국수@c|회 코스@r",night:"경포 해변 불꽃놀이|해변 산책@w",stay:"오션뷰 호텔@r|펜션|게스트하우스@c"},
+{n:"경주",a:0,meal:"한정식|쌈밥",act:"불국사@w|석굴암|대릉원|첨성대 자전거@w|황리단길@m,w|동궁과 월지",rest:"한옥 카페|황남빵 가게",din:"한우 구이@r|떡갈비",night:"동궁과 월지 야경|보문호수 산책@w",stay:"한옥 스테이|보문 리조트@r|게스트하우스@c"},
+{n:"여수",a:0,meal:"게장 백반|해물 칼국수@c",act:"오동도@w|해상 케이블카@m|향일암|이순신광장|돌산공원",rest:"바다 뷰 카페",din:"서대회|해산물 포차@c|한정식@r",night:"여수 밤바다 산책@w|낭만포차@m|케이블카 야경@m",stay:"오션뷰 호텔@r|펜션|게스트하우스@c"},
+{n:"전주",a:0,meal:"비빔밥|콩나물국밥@c",act:"한옥마을 한복 체험@w|경기전|전동성당|자만벽화마을@w|남부시장",rest:"한옥 찻집|문구 카페",din:"한정식@r|막걸리 골목",night:"남부시장 야시장@m|한옥마을 야경@w",stay:"한옥 스테이|호텔|게스트하우스@c"}];
+const FILL={meal:"숙소 조식|현지 로컬 식당|골목 빵집",act:"현지 시장 구경@w|골목 산책@w|기념품 쇼핑",rest:"골목 카페|숙소에서 낮잠",din:"현지 맛집|숙소 근처 레스토랑",night:"숙소 근처 산책@w|룸서비스 야식",stay:"호텔"};
+
+/* ---------- 파싱 ---------- */
+const ERAS=['m','n','g','j','f','s','w'];const INH={s:['m']};
+function P(s){const i=s.lastIndexOf('@');if(i<0)return{t:s,tags:new Set(),need:[]};
+  const tg=s.slice(i+1).split(','),tags=new Set(),need=[];tg.forEach(x=>x[0]==='!'?need.push(x.slice(1)):tags.add(x));return{t:s.slice(0,i),tags,need}}
+const D={};['time','weather','prop','point','twist'].forEach(k=>D[k]=RAW[k].map(P));
+D.cats={};for(const c in RAW.cats)D.cats[c]={label:RAW.cats[c].label,place:RAW.cats[c].place.map(x=>({...P(x),cat:c})),event:RAW.cats[c].event.map(x=>({...P(x),cat:c}))};
+D.time.forEach(it=>{if(it.tags.has('j'))it.tags.add('w')});D.weather.forEach(it=>{if(it.tags.has('j')){it.tags.add('w');it.tags.add('f')}});
+const CO={};for(const e in COURSE){CO[e]={slots:COURSE[e].slots,times:COURSE[e].times,end:COURSE[e].end};['meal1','act','rest','meal2','night','stay'].forEach(k=>CO[e][k]=COURSE[e][k].map(P))}
+
+const IC={
+lock:'<svg width="16" height="16" viewBox="0 0 8 8"><path fill="currentColor" fill-rule="evenodd" d="M2 0h4v1H2zM1 1h1v3H1zM6 1h1v3H6zM0 4h8v4H0zM3 5v2h2V5z"/></svg>',
+open:'<svg width="16" height="16" viewBox="0 0 8 8"><path fill="currentColor" fill-rule="evenodd" d="M4 0h3v1H4zM3 1h1v1H3zM7 1h1v3H7zM0 4h8v4H0zM3 5v2h2V5z"/></svg>',
+dice:'<svg width="16" height="16" viewBox="0 0 8 8"><path fill="currentColor" d="M1 0h6v1H1zM0 1h1v6H0zM7 1h1v6H7zM1 7h6v1H1zM2 2h1v1H2zM5 2h1v1H5zM2 5h1v1H2zM5 5h1v1H5z"/></svg>'};
+const $=s=>document.querySelector(s);
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const store={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+let era=store.get('ev_era','m'),cls=store.get('ev_cls','r');
+$('#nM').value=store.get('ev_nM','승재');$('#nF').value=store.get('ev_nF','카야');
+
+function eraOK(it){const has=ERAS.some(e=>it.tags.has(e));return!has||it.tags.has(era)||(INH[era]||[]).some(e=>it.tags.has(e))}
+function clsOK(it){const t=it.tags;if(t.has('top'))return cls==='top';if(t.has('low'))return cls==='low';if(t.has('r'))return cls==='r'||cls==='top';if(t.has('c'))return cls==='c'||cls==='low';return true}
+const CLS_KEYS=['top','r','o','c','low'];
+const CLS_LABEL={m:['재벌 총수 일가','부유층','보통','서민','밑바닥 (고시원·빚)'],s:['재벌 총수 일가','부유층','보통','서민','밑바닥 (고시원·빚)'],n:['재벌가','부잣집','보통','서민','달동네·판자촌'],g:['대부호 가문','유지·부잣집','보통','서민','막노동·행랑살이'],j:['왕실','양반 대감댁','중인','평민','노비·천민'],f:['황족','공작·대귀족','하급·몰락 귀족','평민','하녀·고아·빈민'],w:['황실·무림맹주가','명문 세가','문파 제자','평민','낭인·거지']};
+function baseOK(it){return eraOK(it)&&clsOK(it)}
+
+function josa(n,j){
+  const c=n.charCodeAt(n.length-1);let bat=false,rieul=false;
+  if(c>=0xAC00&&c<=0xD7A3){const f=(c-0xAC00)%28;bat=f!==0;rieul=f===8}
+  const T={'이':['이','가'],'은':['은','는'],'을':['을','를'],'와':['과','와'],'아':['아','야'],'이랑':['이랑','랑'],'에게':['에게','에게']};
+  if(j==='으로')return bat&&!rieul?'으로':'로';
+  const p=T[j];return p?(bat?p[0]:p[1]):j;
+}
+function names(){return{M:$('#nM').value.trim()||'남자',F:$('#nF').value.trim()||'여자'}}
+function fill(t,ab){const n=names();const map={M:n.M,F:n.F,A:ab?n.M:n.F,B:ab?n.F:n.M};
+  return t.replace(/\{([MFAB])(?::([^}]+))?\}/g,(m,k,j)=>map[k]+(j?josa(map[k],j):''))}
+
+/* ---------- 사건 모드 ---------- */
+const FIELDS=[['time','때'],['weather','날씨'],['place','장소'],['event','사건'],['twist','변수'],['point','감정 포인트'],['prop','소품']];
+let cat='date';const cur={},locks={},on={};
+FIELDS.forEach(([k])=>{on[k]=store.get('ev_on_'+k,'1')==='1';locks[k]=false});
+
+function places(){return cat==='all'?Object.values(D.cats).flatMap(c=>c.place):D.cats[cat].place}
+function events(){return cat==='all'?Object.values(D.cats).flatMap(c=>c.event):D.cats[cat].event}
+function ctxTags(upto){const s=new Set();['time','weather','place'].forEach(k=>{if(k===upto)return;if(on[k]&&cur[k])cur[k].it.tags.forEach(x=>s.add(x))});return s}
+function timeOKforPlace(p,t){if(!t)return true;
+  if(p.tags.has('day')&&t.tags.has('n2'))return false;if(p.tags.has('night')&&t.tags.has('d'))return false;
+  if(p.tags.has('biz')&&t.tags.has('am')&&!(p.tags.has('early')||p.tags.has('24')))return false; // 이른 아침엔 일찍 여는 가게만
+  if(p.tags.has('biz')&&t.tags.has('late')&&!(p.tags.has('night')||p.tags.has('24')))return false; // 늦은 밤엔 밤 가게만
+  return true}
+const SEASONS=['winter','summer','spring','autumn'];
+function seasonOK(it){if(!on.weather||!cur.weather)return true;const ws=SEASONS.filter(x=>cur.weather.it.tags.has(x));const is=SEASONS.filter(x=>it.tags.has(x));
+  if(!is.length||!ws.length)return true;return is.some(x=>ws.includes(x))}
+function needOK(it,ctx){return it.need.every(n=>ctx.has(n))}
+function valid(k,it){
+  if(!baseOK(it))return false;
+  if(k!=='weather'&&k!=='time'&&!seasonOK(it))return false;
+  if(it.tags.has('nolate')&&on.time&&cur.time&&cur.time.it.tags.has('late'))return false;
+  if(it.tags.has('norain')&&on.weather&&cur.weather&&cur.weather.it.tags.has('rain'))return false;
+  if(k==='event'&&cat==='all'&&on.place&&cur.place&&it.cat!==cur.place.it.cat)return false;
+  const t=on.time&&cur.time?cur.time.it:null;
+  if(k==='place')return timeOKforPlace(it,t);
+  if(k==='time'&&on.place&&cur.place)return timeOKforPlace(cur.place.it,it);
+  if(['event','twist','prop'].includes(k)){
+    // 장소가 꺼져 있으면 장소 조건(!out 등)은 묻지 않음
+    const ctx=ctxTags();const need=it.need.filter(n=>on.place||!['in','out','biz','eat'].includes(n));
+    if(it.tags.has('cold')&&on.weather&&cur.weather&&!cur.weather.it.tags.has('cold'))return false;
+    if(it.tags.has('hot')&&on.weather&&cur.weather&&!cur.weather.it.tags.has('hot'))return false;
+    return need.every(n=>ctx.has(n)||((n==='cold'||n==='hot'||n==='rain')&&!on.weather));
+  }
+  return true;
+}
+function poolOf(k){const all=k==='place'?places():k==='event'?events():D[k];return all}
+function roll(k){
+  const all=poolOf(k);let list=all.filter(it=>valid(k,it));
+  if(!list.length)list=all.filter(baseOK);if(!list.length)list=all;
+  cur[k]={it:rnd(list),ab:Math.random()<.5};
+}
+function fixChain(from){ // 앞 항목이 바뀌면 뒤에 안 맞게 된 항목을 다시 뽑음
+  const order=FIELDS.map(f=>f[0]);const start=from?order.indexOf(from)+1:0;
+  for(let i=start;i<order.length;i++){const k=order[i];if(!cur[k]||(!locks[k]&&!valid(k,cur[k].it)))roll(k)}
+}
+function rollAll(){FIELDS.forEach(([k])=>{if(!locks[k])roll(k)});fixChain();renderEv()}
+
+function renderEv(){
+  const box=$('#rows');box.innerHTML='';
+  FIELDS.forEach(([k,l])=>{
+    const r=document.createElement('div');r.className='row'+(on[k]?'':' off');
+    const bad=on[k]&&!valid(k,cur[k].it);
+    r.innerHTML=`<input type="checkbox" ${on[k]?'checked':''} aria-label="${l} 포함"><div class="lab">${l}</div><div class="val"><span></span>${bad?'<span class="warn">· 잠근 항목과 안 맞음</span>':''}</div><div class="btns"><button class="ib wide ${locks[k]?'locked':''}" title="잠그면 전체 다시 뽑아도 그대로 남아요">${locks[k]?IC.lock+'고정됨':IC.open+'고정'}</button><button class="ib wide" title="이 줄만 랜덤으로 다시 뽑기">${IC.dice}랜덤</button></div>`;
+    r.querySelector('.val span').textContent=fill(cur[k].it.t,cur[k].ab);
+    r.querySelector('input').onchange=e=>{on[k]=e.target.checked;store.set('ev_on_'+k,on[k]?'1':'0');fixChain();renderEv()};
+    const [lb,rb]=r.querySelectorAll('.ib');
+    lb.onclick=()=>{locks[k]=!locks[k];renderEv()};
+    rb.onclick=()=>{roll(k);fixChain(k);renderEv()};
+    box.appendChild(r);
+  });
+  $('#outEv').textContent=evText();
+  $('#countEv').textContent=`지금 설정으로 나올 수 있는 조합: 약 ${countEv().toLocaleString('ko-KR')}가지`;
+}
+function countEv(){
+  // 시간×날씨×장소마다 맞는 사건·변수·소품 수를 곱해서 더함
+  const save={...cur};let total=0;
+  const T=on.time?D.time.filter(baseOK):[null],W=on.weather?D.weather.filter(baseOK):[null],PL=on.place?places().filter(baseOK):[null];
+  const pt=on.point?D.point.length*2:1;
+  for(const t of T)for(const w of W){
+    cur.time=t?{it:t}:undefined;cur.weather=w?{it:w}:undefined;
+    for(const p of PL){
+      if(p&&t&&!timeOKforPlace(p,t))continue;cur.place=p?{it:p}:undefined;
+      const ev=on.event?events().filter(x=>valid('event',x)).length:1;
+      const tw=on.twist?D.twist.filter(x=>valid('twist',x)).length*2:1;
+      const pr=on.prop?D.prop.filter(x=>valid('prop',x)).length:1;
+      total+=ev*tw*pr*pt;
+    }
+  }
+  Object.assign(cur,save);return total;
+}
+function evText(){
+  const L=['@: *지금 이 씬은 건너뛰고, 아래 사건이 실제로 일어나서 그 상황이 완전히 끝난 뒤부터 이어줘.*'];
+  FIELDS.forEach(([k,l])=>{if(on[k])L.push(`*${l}: ${fill(cur[k].it.t,cur[k].ab)}*`)});
+  L.push('*건너뛴 과정과 결과는 상세히 요약해주고, 기존 인물 성격·관계·누적 서사에 맞춰 가장 개연성 있게 진행해. 이 사건에서 생긴 일과 감정·관계 변화는 실제 과거 서사로 기억하고 이후에도 반영해줘.*');
+  return L.join('\n');
+}
+
+/* ---------- 코스 모드 ---------- */
+const CI=CITIES.map(c=>{const o={n:c.n,a:c.a};['meal','act','rest','din','night','stay'].forEach(k=>o[k]=c[k].split('|').map(P));return o});
+const FI={};for(const k in FILL)FI[k]=FILL[k].split('|').map(P);
+let slots=[],tripCity=null;
+function hasDest(){return['m','n','s'].includes(era)}
+function opt(){return{len:+document.querySelector('input[name=len]:checked').value,
+  dest:hasDest()?document.querySelector('input[name=dest]:checked').value:'local',
+  city:$('#city').value,low:$('#lowWalk').checked,tw:$('#addTw').checked}}
+function cKey(){return era==='s'?'m':era}
+function okC(x){return eraOK(x)&&clsOK(x)&&!(opt().low&&x.tags.has('w'))}
+const CMAP={meal1:'meal',meal2:'din',act:'act',rest:'rest',night:'night',stay:'stay'};
+function pickC(type,used,city){
+  let pools;
+  if(city){const k=CMAP[type];pools=[city[k],FI[k]]}else pools=[CO[cKey()][type]];
+  for(const pl of pools){const l=pl.filter(x=>okC(x)&&!used.has(x.t));if(l.length)return rnd(l).t}
+  const any=pools.flat().filter(okC);return rnd(any.length?any:pools.flat()).t;
+}
+const hm=(h,m)=>String(h).padStart(2,'0')+':'+(m?'30':'00');
+function cityList(dest){return CI.filter(c=>dest==='abroad'?c.a:!c.a)}
+function plan(){
+  const o=opt(),D=o.len,p=[];
+  if(o.dest==='local'){
+    const E=CO[cKey()],W=!!E.times;tripCity=null;
+    for(let d=0;d<D;d++){
+      let H,S=E.slots;
+      if(d===0)H=[[11,1],[14,0],[16,1],[19,0],[21,1]];
+      else if(d<D-1)H=[[11,0],[13,0],[15,1],[18,1],[21,0]];
+      else{H=[[11,0],[13,1],[15,1],[18,0]];S=S.slice(0,4)}
+      let day=S.map((t,i)=>({day:d,type:t,lab:W?E.times[i]:hm(...H[i])}));
+      if(d===0&&D>1&&Math.random()<.3)day.shift();
+      if(d===0&&D===1&&Math.random()<.3)day.shift();
+      p.push(...day);
+      if(d<D-1)p.push({day:d,type:'stay',lab:W?'한밤중':'23:00',pre:'숙소: '});
+    }
+    p.push({day:D-1,type:'end',lab:W?(D===1?'한밤중':'밤'):(D===1?'23:00':'20:00'),fixed:E.end});
+    return p;
+  }
+  // 여행 (국내·해외)
+  const list=cityList(o.dest);tripCity=list.find(c=>c.n===o.city)||rnd(list);const c=tripCity;
+  const air=era==='n'?'김포공항':'인천공항';
+  const dep=o.dest==='abroad'?`${air} 출국 → ${c.n}`:(c.n==='제주'?'김포공항에서 제주행 비행기':`${c.n}${josa(c.n,'으로')} 출발`);
+  if(D===1){
+    p.push({day:0,type:'dep',lab:'08:00',fixed:dep});
+    [['meal1',12,0],['act',14,0],['rest',16,0],['meal2',18,1]].forEach(([t,h,m])=>p.push({day:0,type:t,lab:hm(h,m)}));
+    p.push({day:0,type:'end',lab:'21:00',fixed:'집으로 출발'});return p;
+  }
+  for(let d=0;d<D;d++){
+    if(d===0){
+      p.push({day:0,type:'dep',lab:'09:00',fixed:dep});
+      p.push({day:0,type:'stay',lab:'13:00',pre:'도착 · 숙소 체크인: '});
+      [['act',15,0],['meal2',19,0],['night',21,0]].forEach(([t,h,m])=>p.push({day:0,type:t,lab:hm(h,m)}));
+    }else if(d<D-1){
+      [['meal1',10,0],['act',12,0],[Math.random()<.5?'rest':'act',15,0],['meal2',18,1],['night',21,0]].forEach(([t,h,m])=>p.push({day:d,type:t,lab:hm(h,m)}));
+    }else{
+      [['meal1',10,0],['act',12,0]].forEach(([t,h,m])=>p.push({day:d,type:t,lab:hm(h,m)}));
+      p.push({day:d,type:'end',lab:'15:00',fixed:o.dest==='abroad'?'공항으로 이동 · 귀국':'집으로 출발'});
+    }
+  }
+  return p;
+}
+function twistOK(it){return baseOK(it)&&!it.need.some(n=>['cold','hot','rain','in','eat','biz','crowd','abroad'].includes(n))}
+function rollCourse(){
+  const used=new Set();
+  slots=plan().map(s=>{const text=s.fixed||pickC(s.type,used,tripCity);used.add(text);return{...s,text,status:'',tw:null}});
+  if(opt().tw){const c=slots.filter(s=>!s.fixed&&s.type!=='stay');const tl=D.twist.filter(twistOK);if(c.length&&tl.length)rnd(c).tw={it:rnd(tl),ab:Math.random()<.5}}
+  renderCo();
+}
+function dayName(d){const n=slots.length?slots[slots.length-1].day+1:1;
+  let s=n===1?'(오늘)':(n===2&&!tripCity?(d?'(내일)':'(오늘)'):`(${d+1}일차)`);
+  if(tripCity)s=s.replace(')',` · ${tripCity.n})`);return s}
+function slotText(s){return (s.pre||'')+s.text}
+function renderCo(){
+  const box=$('#slots');box.innerHTML='';let lastDay=-1;
+  slots.forEach(s=>{
+    if(s.day!==lastDay){lastDay=s.day;const d=document.createElement('div');d.className='day';d.textContent=dayName(s.day);box.appendChild(d)}
+    const r=document.createElement('div');r.className='slot';
+    r.innerHTML=`<div class="tm"></div><div><span class="tx"></span>${s.status?`<span class="st ${s.status==='완료'?'done':''}">${s.status}</span>`:''}${s.tw?'<span class="tw"></span>':''}</div><div class="btns">${s.fixed?'':`<button class="ib wide" title="이 일정만 랜덤으로 다시 뽑기">${IC.dice}랜덤</button>`}</div>`;
+    r.querySelector('.tm').textContent=s.lab;r.querySelector('.tx').textContent=slotText(s);
+    if(s.tw)r.querySelector('.tw').textContent='돌발: '+fill(s.tw.it.t,s.tw.ab);
+    r.onclick=e=>{if(e.target.closest('.ib'))return;s.status=s.status===''?'완료':s.status==='완료'?'진행중':'';renderCo()};
+    const b=r.querySelector('.ib');if(b)b.onclick=()=>{s.text=pickC(s.type,new Set(slots.map(x=>x.text)),tripCity);renderCo()};
+    box.appendChild(r);
+  });
+  $('#outCo').textContent=coText();
+  const tw=Math.max(1,D.twist.filter(twistOK).length*2);let n;
+  if(tripCity){const f=k=>Math.max(1,tripCity[k].concat(FI[k]).filter(okC).length);n=f('meal')*f('act')*f('act')*f('din')*f('night')*f('stay')*tw*cityList(opt().dest).length}
+  else{const E=CO[cKey()],f=k=>Math.max(1,E[k].filter(okC).length);n=f('meal1')*f('act')*f('rest')*f('meal2')*f('night')*tw}
+  $('#countCo').textContent=`이 설정으로 나올 수 있는 코스: 약 ${n.toLocaleString('ko-KR')}가지 이상`;
+}
+function coText(){
+  const L=[];let lastDay=-1;
+  slots.forEach(s=>{if(s.day!==lastDay){lastDay=s.day;L.push(dayName(s.day))}
+    L.push(`${s.lab} ${slotText(s)}${s.status?`(${s.status})`:''}${s.tw?` — 돌발: ${fill(s.tw.it.t,s.tw.ab)}`:''}`)});
+  return L.join('\n');
+}
+function fillCity(){
+  const o=opt();const sel=$('#city');const prev=sel.value;
+  sel.innerHTML='<option value="">도시 랜덤</option>'+(o.dest==='local'?'':cityList(o.dest).map(c=>`<option>${c.n}</option>`).join(''));
+  sel.value=[...sel.options].some(x=>x.value===prev)?prev:'';
+  sel.style.display=o.dest==='local'?'none':'';
+  const one=document.querySelector('input[name=len][value="1"]');
+  one.disabled=o.dest==='abroad';one.parentElement.style.opacity=o.dest==='abroad'?.35:1;
+  if(o.dest==='abroad'&&one.checked)document.querySelector('input[name=len][value="3"]').checked=true;
+}
+function syncCourseUI(){$('#destRow').style.display=hasDest()?'':'none';fillCity()}
+document.querySelectorAll('input[name=len],#lowWalk,#addTw,#city').forEach(x=>x.onchange=rollCourse);
+document.querySelectorAll('input[name=dest]').forEach(x=>x.onchange=()=>{fillCity();rollCourse()});
+$('#rollCourse').onclick=rollCourse;
+
+/* ---------- 공통 ---------- */
+function setSeg(id,val){document.querySelectorAll(id+' .tab').forEach(b=>b.classList.toggle('on',b.dataset.v===val))}
+function renderCls(){const box=$('#clsTabs');box.innerHTML='';
+  CLS_KEYS.forEach((k,i)=>{const b=document.createElement('button');b.className='tab'+(k===cls?' on':'');b.dataset.v=k;b.textContent=CLS_LABEL[era][i];
+    b.onclick=()=>{cls=k;store.set('ev_cls',cls);setSeg('#clsTabs',cls);FIELDS.forEach(([f])=>{if(!locks[f])roll(f)});fixChain();renderEv();rollCourse()};box.appendChild(b)})}
+if(!ERAS.includes(era))era='m';if(!CLS_KEYS.includes(cls))cls='r';
+setSeg('#eraTabs',era);renderCls();
+document.querySelectorAll('#eraTabs .tab').forEach(b=>b.onclick=()=>{era=b.dataset.v;store.set('ev_era',era);setSeg('#eraTabs',era);renderCls();
+  FIELDS.forEach(([k])=>{if(!locks[k])roll(k)});fixChain();renderEv();syncCourseUI();rollCourse()});
+document.querySelectorAll('#catTabs .tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#catTabs .tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  cat=b.dataset.cat;['place','event'].forEach(k=>{if(!locks[k])roll(k)});fixChain('place');renderEv()});
+$('#rollAll').onclick=rollAll;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+async function copy(txt){try{await navigator.clipboard.writeText(txt);toast('복사했어요')}catch(e){
+  const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');toast('복사했어요')}catch(_){toast('복사가 막혀 있어요. 아래 글을 길게 눌러 복사해 주세요')}ta.remove()}}
+$('#copyEv').onclick=()=>copy(evText());$('#copyCo').onclick=()=>copy(coText());
+['nM','nF'].forEach(id=>$('#'+id).oninput=e=>{store.set('ev_'+id,e.target.value);renderEv();renderCo()});
+document.querySelectorAll('#modeTabs .tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#modeTabs .tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  $('#eventMode').classList.toggle('hide',b.dataset.mode!=='event');$('#courseMode').classList.toggle('hide',b.dataset.mode!=='course')});
+
+
+/* ---------- 글씨 ---------- */
+let font=store.get('ev_font','fnd');if(!['f11','f14','fnd'].includes(font))font='fnd';
+function applyFont(){document.body.classList.remove('f11','f14','fnd');document.body.classList.add(font);setSeg('#fontTabs',font)}
+document.querySelectorAll('#fontTabs .tab').forEach(b=>b.onclick=()=>{font=b.dataset.v;store.set('ev_font',font);applyFont()});
+applyFont();
+document.querySelectorAll('.dz').forEach(x=>x.innerHTML=IC.dice);
+/* ---------- 설기 BGM: 버튼 하나로 켜고 끄기 (브라우저가 자동재생을 막아서 처음엔 눌러야 나옴) ---------- */
+const BGM={ac:null,buf:null,src:null,el:null,on:false};
+function bgmUI(){const b=$('#bgmBtn');b.classList.toggle('on',BGM.on);b.setAttribute('aria-pressed',BGM.on);$('#bgmLab').textContent=BGM.on?'설기 BGM 끄기':'설기 BGM 켜기'}
+async function bgmStart(){
+  try{
+    BGM.ac=BGM.ac||new (window.AudioContext||window.webkitAudioContext)();if(BGM.ac.state==='suspended')await BGM.ac.resume();
+    if(!BGM.buf){const r=await fetch('bgm/seolgi-theme.mp3');BGM.buf=await BGM.ac.decodeAudioData(await r.arrayBuffer())}
+    if(!BGM.on||BGM.src)return;
+    const src=BGM.ac.createBufferSource();src.buffer=BGM.buf;src.loop=true;src.loopStart=0.03;src.loopEnd=Math.min(BGM.buf.duration,40);
+    const g=BGM.ac.createGain();g.gain.value=.35;src.connect(g);g.connect(BGM.ac.destination);src.start(0,0.03);BGM.src=src;
+  }catch(e){ // 웹오디오가 안 되면 일반 오디오로
+    BGM.el=BGM.el||Object.assign(new Audio('bgm/seolgi-theme.mp3'),{loop:true,volume:.35});
+    try{await BGM.el.play()}catch(_){BGM.on=false;bgmUI();toast('브라우저가 소리를 막았어요. 다시 눌러 주세요')}
+  }
+}
+function bgmStop(){try{if(BGM.src){BGM.src.stop();BGM.src=null}}catch(e){}if(BGM.el)BGM.el.pause()}
+$('#bgmBtn').onclick=()=>{BGM.on=!BGM.on;store.set('ev_bgm',BGM.on?'on':'off');bgmUI();BGM.on?bgmStart():bgmStop()};
+// 지난번에 켜둔 사람은 화면을 처음 누를 때 다시 켜짐
+if(store.get('ev_bgm','off')==='on'){const once=e=>{if(e.target.closest('#bgmBtn'))return;document.removeEventListener('pointerdown',once,true);BGM.on=true;bgmUI();bgmStart()};document.addEventListener('pointerdown',once,true)}
+bgmUI();
+FIELDS.forEach(([k])=>roll(k));fixChain();renderEv();syncCourseUI();rollCourse();
+</script>
+</body>
+</html>
