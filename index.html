@@ -6,11 +6,9 @@
 <title>랜덤 데이트 발생기</title>
 <style>
 @font-face{font-family:'Galmuri11';src:url(fonts/Galmuri11.woff2) format('woff2');font-weight:400}
-@font-face{font-family:'Galmuri11';src:url(fonts/Galmuri11-Bold.woff2) format('woff2');font-weight:700}
 @font-face{font-family:'NeoDunggeunmo';src:url(fonts/neodgm.woff2) format('woff2')}
 /* 글씨 크기는 폰트가 원래 설계된 크기(배수)로만 써야 도트가 안 번짐 */
-body.f11{--ff:'Galmuri11',monospace;--fs:12px;--fh:24px;--fb:700;--labw:84px}
-body.fnd{--ff:'NeoDunggeunmo','Galmuri11',monospace;--fs:16px;--fh:32px;--fb:400;--labw:112px}
+body{--ff:'NeoDunggeunmo','Galmuri11',monospace;--fs:13px;--fh:26px;--fb:400;--labw:96px}
 
 :root{--bg:#fbf1dc;--ink:#2b1d3a;--card:#fffaf0;--sub:#7b6a86;--line:#e9dcc2;--acc:#ff5c8d;--mint:#4fbf9f;--yel:#ffd23f;--sky:#7ec8f2;--lock:#4fbf9f;--sh:rgba(43,29,58,.22)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -91,7 +89,7 @@ input[type=checkbox]:checked::after,input[type=radio]:checked::after{content:'';
 
 .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:0 4px 18px}
 .toolbar .lbl{color:var(--sub);margin-right:-4px}
-.bgm{display:flex;align-items:center;gap:8px}
+.bgm{display:flex;align-items:center;gap:8px;font:inherit;font-size:var(--fs)}
 .bgm .eq{display:flex;align-items:flex-end;gap:2px;width:14px;height:12px}
 .bgm .eq i{flex:1;height:30%;background:currentColor}
 .bgm.on{background:var(--ink);color:var(--yel)}
@@ -104,7 +102,7 @@ input[type=checkbox]:checked::after,input[type=radio]:checked::after{content:'';
 @media (prefers-reduced-motion:reduce){.bgm.on .eq i,.blink,.out::after{animation:none}}
 </style>
 </head>
-<body class="fnd">
+<body>
 <div class="wrap">
   <div class="titlebar">
     <div><h1>랜덤 데이트 발생기</h1><p class="lead"><span class="blink">▶</span> 제타 롤플레이용 · 시대와 형편에 맞춰 사건·코스를 뽑아요</p></div>
@@ -112,11 +110,6 @@ input[type=checkbox]:checked::after,input[type=radio]:checked::after{content:'';
   </div>
   <div class="toolbar">
     <button class="tab bgm" id="bgmBtn" type="button" aria-pressed="false"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span id="bgmLab">BGM 켜기</span></button>
-    <span class="lbl">글씨</span>
-    <div class="tabs seg" id="fontTabs" style="margin:0">
-      <button class="tab" data-v="fnd">둥근모</button>
-      <button class="tab" data-v="f11">작게</button>
-    </div>
   </div>
   <div class="tabs" id="modeTabs">
     <button class="tab on" data-mode="event">사건 뽑기</button>
@@ -827,11 +820,6 @@ document.querySelectorAll('#modeTabs .tab').forEach(b=>b.onclick=()=>{
   $('#eventMode').classList.toggle('hide',b.dataset.mode!=='event');$('#courseMode').classList.toggle('hide',b.dataset.mode!=='course')});
 
 
-/* ---------- 글씨 ---------- */
-let font=store.get('ev_font','fnd');if(!['f11','fnd'].includes(font))font='fnd';
-function applyFont(){document.body.classList.remove('f11','f14','fnd');document.body.classList.add(font);setSeg('#fontTabs',font)}
-document.querySelectorAll('#fontTabs .tab').forEach(b=>b.onclick=()=>{font=b.dataset.v;store.set('ev_font',font);applyFont()});
-applyFont();
 document.querySelectorAll('.dz').forEach(x=>x.innerHTML=IC.dice);
 /* ---------- BGM: 버튼 하나로 켜고 끄기 (브라우저가 자동재생을 막아서 처음엔 눌러야 나옴) ---------- */
 const BGM={ac:null,buf:null,src:null,el:null,on:false};
