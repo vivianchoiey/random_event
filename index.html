@@ -3,15 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>랜덤 사건 발생기</title>
+<title>랜덤 데이트 발생기</title>
 <style>
 @font-face{font-family:'Galmuri11';src:url(fonts/Galmuri11.woff2) format('woff2');font-weight:400}
 @font-face{font-family:'Galmuri11';src:url(fonts/Galmuri11-Bold.woff2) format('woff2');font-weight:700}
-@font-face{font-family:'Galmuri14';src:url(fonts/Galmuri14.woff2) format('woff2')}
 @font-face{font-family:'NeoDunggeunmo';src:url(fonts/neodgm.woff2) format('woff2')}
 /* 글씨 크기는 폰트가 원래 설계된 크기(배수)로만 써야 도트가 안 번짐 */
-body.f11{--ff:'Galmuri11','Galmuri14',monospace;--fs:12px;--fh:24px;--fb:700;--labw:84px}
-body.f14{--ff:'Galmuri14','Galmuri11',monospace;--fs:15px;--fh:30px;--fb:400;--labw:104px}
+body.f11{--ff:'Galmuri11',monospace;--fs:12px;--fh:24px;--fb:700;--labw:84px}
 body.fnd{--ff:'NeoDunggeunmo','Galmuri11',monospace;--fs:16px;--fh:32px;--fb:400;--labw:112px}
 
 :root{--bg:#fbf1dc;--ink:#2b1d3a;--card:#fffaf0;--sub:#7b6a86;--line:#e9dcc2;--acc:#ff5c8d;--mint:#4fbf9f;--yel:#ffd23f;--sky:#7ec8f2;--lock:#4fbf9f;--sh:rgba(43,29,58,.22)}
@@ -44,6 +42,7 @@ h1{font-size:var(--fh);font-weight:var(--fb);letter-spacing:1px;line-height:1.3}
 .names{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px}
 .names label{font-size:var(--fs);color:var(--sub);display:flex;flex-direction:column;gap:6px;flex:1;min-width:130px}
 .names input{font:inherit;font-size:var(--fs);color:var(--ink);border:none;background:#fff;padding:7px 10px;margin:0 2px;box-shadow:0 -2px 0 0 var(--ink),0 2px 0 0 var(--ink),-2px 0 0 0 var(--ink),2px 0 0 0 var(--ink),inset 2px 2px 0 0 var(--line);outline:none}
+.names input::placeholder{color:#b9a9c4}
 .names input:focus{background:#fff8d6}
 .card{padding:4px 0;margin:4px 4px 26px}
 .row{display:grid;grid-template-columns:18px var(--labw) 1fr auto;align-items:start;gap:10px;padding:11px 14px;border-bottom:2px dashed var(--line)}
@@ -108,16 +107,15 @@ input[type=checkbox]:checked::after,input[type=radio]:checked::after{content:'';
 <body class="fnd">
 <div class="wrap">
   <div class="titlebar">
-    <div><h1>랜덤 사건 발생기</h1><p class="lead"><span class="blink">▶</span> 제타 롤플레이용 · 시대와 형편에 맞춰 사건·코스를 뽑아요</p></div>
+    <div><h1>랜덤 데이트 발생기</h1><p class="lead"><span class="blink">▶</span> 제타 롤플레이용 · 시대와 형편에 맞춰 사건·코스를 뽑아요</p></div>
     <div class="hearts"><svg width="18" height="16" viewBox="0 0 9 8"><path d="M1 0h2v1H1zM6 0h2v1H6zM0 1h4v1H0zM5 1h4v1H5zM0 2h9v2H0zM1 4h7v1H1zM2 5h5v1H2zM3 6h3v1H3zM4 7h1v1H4z" fill="#ff5c8d"/></svg><svg width="18" height="16" viewBox="0 0 9 8"><path d="M1 0h2v1H1zM6 0h2v1H6zM0 1h4v1H0zM5 1h4v1H5zM0 2h9v2H0zM1 4h7v1H1zM2 5h5v1H2zM3 6h3v1H3zM4 7h1v1H4z" fill="#ff5c8d"/></svg><svg width="18" height="16" viewBox="0 0 9 8"><path d="M1 0h2v1H1zM6 0h2v1H6zM0 1h4v1H0zM5 1h4v1H5zM0 2h9v2H0zM1 4h7v1H1zM2 5h5v1H2zM3 6h3v1H3zM4 7h1v1H4z" fill="#ff5c8d"/></svg></div>
   </div>
   <div class="toolbar">
-    <button class="tab bgm" id="bgmBtn" type="button" aria-pressed="false"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span id="bgmLab">설기 BGM 켜기</span></button>
+    <button class="tab bgm" id="bgmBtn" type="button" aria-pressed="false"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span id="bgmLab">BGM 켜기</span></button>
     <span class="lbl">글씨</span>
     <div class="tabs seg" id="fontTabs" style="margin:0">
-      <button class="tab" data-v="f11">작게</button>
-      <button class="tab" data-v="f14">크게</button>
       <button class="tab" data-v="fnd">둥근모</button>
+      <button class="tab" data-v="f11">작게</button>
     </div>
   </div>
   <div class="tabs" id="modeTabs">
@@ -127,8 +125,8 @@ input[type=checkbox]:checked::after,input[type=radio]:checked::after{content:'';
 
   <div class="set px">
     <div class="names">
-      <label>남자 캐릭터 이름<input id="nM" value="승재"></label>
-      <label>여자 캐릭터 이름<input id="nF" value="카야"></label>
+      <label>남자 캐릭터 이름<input id="nM" value="" placeholder="비워두면 남주"></label>
+      <label>여자 캐릭터 이름<input id="nF" value="" placeholder="비워두면 여주"></label>
     </div>
     <h2>시대 배경</h2>
     <div class="tabs seg" id="eraTabs">
@@ -191,7 +189,7 @@ input[type=checkbox]:checked::after,input[type=radio]:checked::after{content:'';
     <div class="out" id="outCo"></div>
     <p class="count" id="countCo"></p>
   </section>
-<p class="foot">배경음악: 설기 떡집 테마곡 (직접 만든 곡이라 저작권 걱정 없어요) · 폰트: 갈무리, Neo둥근모 (SIL 오픈 폰트 라이선스)</p>
+<p class="foot">배경음악: 직접 제작한 곡이라 저작권 걱정 없어요 · 폰트: Neo둥근모, 갈무리 (SIL 오픈 폰트 라이선스)</p>
 </div>
 <div class="toast" id="toast">복사했어요</div>
 
@@ -590,12 +588,12 @@ const rnd=a=>a[Math.floor(Math.random()*a.length)];
 const store={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 
 let era=store.get('ev_era','m'),cls=store.get('ev_cls','r');
-$('#nM').value=store.get('ev_nM','승재');$('#nF').value=store.get('ev_nF','카야');
+$('#nM').value=store.get('ev_nM','');$('#nF').value=store.get('ev_nF','');
 
 function eraOK(it){const has=ERAS.some(e=>it.tags.has(e));return!has||it.tags.has(era)||(INH[era]||[]).some(e=>it.tags.has(e))}
 function clsOK(it){const t=it.tags;if(t.has('top'))return cls==='top';if(t.has('low'))return cls==='low';if(t.has('r'))return cls==='r'||cls==='top';if(t.has('c'))return cls==='c'||cls==='low';return true}
 const CLS_KEYS=['top','r','o','c','low'];
-const CLS_LABEL={m:['재벌 총수 일가','부유층','보통','서민','밑바닥 (고시원·빚)'],s:['재벌 총수 일가','부유층','보통','서민','밑바닥 (고시원·빚)'],n:['재벌가','부잣집','보통','서민','달동네·판자촌'],g:['대부호 가문','유지·부잣집','보통','서민','막노동·행랑살이'],j:['왕실','양반 대감댁','중인','평민','노비·천민'],f:['황족','공작·대귀족','하급·몰락 귀족','평민','하녀·고아·빈민'],w:['황실·무림맹주가','명문 세가','문파 제자','평민','낭인·거지']};
+const CLS_LABEL={m:['재벌 총수 일가','부유층','보통','서민','노장'],s:['재벌 총수 일가','부유층','보통','서민','노장'],n:['재벌가','부잣집','보통','서민','달동네·판자촌'],g:['대부호 가문','유지·부잣집','보통','서민','막노동·행랑살이'],j:['왕실','양반 대감댁','중인','평민','노비·천민'],f:['황족','공작·대귀족','하급·몰락 귀족','평민','하녀·고아·빈민'],w:['황실·무림맹주가','명문 세가','문파 제자','평민','낭인·거지']};
 function baseOK(it){return eraOK(it)&&clsOK(it)}
 
 function josa(n,j){
@@ -605,7 +603,7 @@ function josa(n,j){
   if(j==='으로')return bat&&!rieul?'으로':'로';
   const p=T[j];return p?(bat?p[0]:p[1]):j;
 }
-function names(){return{M:$('#nM').value.trim()||'남자',F:$('#nF').value.trim()||'여자'}}
+function names(){return{M:$('#nM').value.trim()||'남주',F:$('#nF').value.trim()||'여주'}}
 function fill(t,ab){const n=names();const map={M:n.M,F:n.F,A:ab?n.M:n.F,B:ab?n.F:n.M};
   return t.replace(/\{([MFAB])(?::([^}]+))?\}/g,(m,k,j)=>map[k]+(j?josa(map[k],j):''))}
 
@@ -830,14 +828,14 @@ document.querySelectorAll('#modeTabs .tab').forEach(b=>b.onclick=()=>{
 
 
 /* ---------- 글씨 ---------- */
-let font=store.get('ev_font','fnd');if(!['f11','f14','fnd'].includes(font))font='fnd';
+let font=store.get('ev_font','fnd');if(!['f11','fnd'].includes(font))font='fnd';
 function applyFont(){document.body.classList.remove('f11','f14','fnd');document.body.classList.add(font);setSeg('#fontTabs',font)}
 document.querySelectorAll('#fontTabs .tab').forEach(b=>b.onclick=()=>{font=b.dataset.v;store.set('ev_font',font);applyFont()});
 applyFont();
 document.querySelectorAll('.dz').forEach(x=>x.innerHTML=IC.dice);
-/* ---------- 설기 BGM: 버튼 하나로 켜고 끄기 (브라우저가 자동재생을 막아서 처음엔 눌러야 나옴) ---------- */
+/* ---------- BGM: 버튼 하나로 켜고 끄기 (브라우저가 자동재생을 막아서 처음엔 눌러야 나옴) ---------- */
 const BGM={ac:null,buf:null,src:null,el:null,on:false};
-function bgmUI(){const b=$('#bgmBtn');b.classList.toggle('on',BGM.on);b.setAttribute('aria-pressed',BGM.on);$('#bgmLab').textContent=BGM.on?'설기 BGM 끄기':'설기 BGM 켜기'}
+function bgmUI(){const b=$('#bgmBtn');b.classList.toggle('on',BGM.on);b.setAttribute('aria-pressed',BGM.on);$('#bgmLab').textContent=BGM.on?'BGM 끄기':'BGM 켜기'}
 async function bgmStart(){
   try{
     BGM.ac=BGM.ac||new (window.AudioContext||window.webkitAudioContext)();if(BGM.ac.state==='suspended')await BGM.ac.resume();
