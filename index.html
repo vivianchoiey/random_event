@@ -820,6 +820,17 @@ document.querySelectorAll('#modeTabs .tab').forEach(b=>b.onclick=()=>{
   $('#eventMode').classList.toggle('hide',b.dataset.mode!=='event');$('#courseMode').classList.toggle('hide',b.dataset.mode!=='course')});
 
 
+
+/* ---------- 글씨 선명도: 둥근모는 16px 격자 폰트라, 화면 배율(dpr)에 맞춰 도트가 딱 떨어지는 크기로 맞춤 ---------- */
+function fitFont(){
+  const dpr=window.devicePixelRatio||1;let fs=13;
+  if(dpr<2){ // PC 같은 저배율 화면: 글자 도트 1칸이 화면 픽셀에 정확히 맞는 크기 중 12~17px 사이를 고름
+    const c=[1,2,3,4].map(k=>16*k/dpr).filter(x=>x>=12&&x<=17);
+    fs=c.length?c.sort((a,b)=>Math.abs(a-14)-Math.abs(b-14))[0]:16;
+  }
+  const b=document.body.style;b.setProperty('--fs',fs+'px');b.setProperty('--fh',(fs*2)+'px');b.setProperty('--labw',Math.round(fs*7.4)+'px');
+}
+fitFont();window.addEventListener('resize',fitFont);
 document.querySelectorAll('.dz').forEach(x=>x.innerHTML=IC.dice);
 /* ---------- BGM: 버튼 하나로 켜고 끄기 (브라우저가 자동재생을 막아서 처음엔 눌러야 나옴) ---------- */
 const BGM={ac:null,buf:null,src:null,el:null,on:false};
