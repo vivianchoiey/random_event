@@ -695,13 +695,14 @@ function spotTags(t,type){const s=new Set();
   if(type!=='stay'&&/박물관|미술관|궁$|궁전|사원|신사|성당|서원|투어|체험|하이킹|트레킹|스노클링|패러글라이딩|목장|케이블카|열기구/.test(t))s.add('day');
   if(/아이스링크|스키|눈축제|크리스마스/.test(t))s.add('winter');
   return s}
-function cityPlaces(n){const key=n+'|'+(['trip','all'].includes(cat)?1:0);if(CP[key])return CP[key];const c=CI.find(x=>x.n===n);if(!c)return null;const out=[];
-  ['meal','act','rest','din','night','stay'].forEach(k=>c[k].forEach(x=>{if(k==='stay'&&!['trip','all'].includes(cat))return;const tg=spotTags(x.t,k);x.tags.forEach(t=>tg.add(t));if(c.a)tg.add('abroad');out.push({t:`${c.n} · ${x.t}`,tags:tg,need:[],cat:'trip'})}));
+function seoulCity(){const E=CO[cKey()];if(!E||!E.meal1)return null;return{n:'서울',a:0,meal:E.meal1,act:E.act,rest:E.rest,din:E.meal2,night:E.night,stay:E.stay}}
+function cityPlaces(n){const key=n+'|'+era+'|'+(['trip','all'].includes(cat)?1:0);if(CP[key])return CP[key];const c=n==='서울'?seoulCity():CI.find(x=>x.n===n);if(!c)return null;const out=[];
+  ['meal','act','rest','din','night','stay'].forEach(k=>c[k].forEach(x=>{if(k==='stay'&&!['trip','all'].includes(cat))return;const tg=spotTags(x.t,k);x.tags.forEach(t=>tg.add(t));if(c.a)tg.add('abroad');out.push({t:x.t.includes(c.n)?x.t:`${c.n} · ${x.t}`,tags:tg,need:[],cat:'trip'})}));
   return CP[key]=out}
 function fillRegion(){const sel=$('#region');
   const nr=CI.filter(c=>c.near),kr=CI.filter(c=>!c.a&&!c.near),ab=CI.filter(c=>c.a),og=(l,a)=>`<optgroup label="${l}">`+a.map(c=>`<option>${c.n}</option>`).join('')+'</optgroup>';
-  sel.innerHTML='<option value="">전체 랜덤</option>'+og('서울 근교',nr)+og('국내',kr)+og('해외',ab);
-  sel.value=CI.some(c=>c.n===region)?region:'';region=sel.value;syncRegion()}
+  sel.innerHTML='<option value="">전체 랜덤</option><optgroup label="서울"><option>서울</option></optgroup>'+og('서울 근교',nr)+og('국내',kr)+og('해외',ab);
+  sel.value=(region==='서울'||CI.some(c=>c.n===region))?region:'';region=sel.value;syncRegion()}
 function syncRegion(){$('#regionRow').style.display=regionOK()?'':'none';
   $('#regionHint').textContent=region&&regionOK()?(cat==='home'?'· 집 안 탭은 지역과 상관없이 나와요':'· 장소가 이 지역 안에서만 나와요'):''}
 
