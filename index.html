@@ -176,7 +176,8 @@ input[type=checkbox]:checked::after,input[type=radio]:checked::after{content:'';
       <label><input type="radio" name="len" value="5"> 4박 5일</label>
     </div>
     <div class="opts" id="destRow">
-      <label><input type="radio" name="dest" value="local" checked> 근교 데이트</label>
+      <label><input type="radio" name="dest" value="local" checked> 서울 데이트</label>
+      <label><input type="radio" name="dest" value="near"> 서울 근교</label>
       <label><input type="radio" name="dest" value="kr"> 국내 여행</label>
       <label><input type="radio" name="dest" value="abroad"> 해외 여행</label>
       <select id="city" aria-label="도시"></select>
@@ -568,10 +569,10 @@ COURSE.m.rest.push("서울신라호텔 더 라이브러리 라운지@r","시그�
 COURSE.m.act.push("롯데월드타워 서울스카이 전망대","반얀트리 서울 야외수영장@r","그랜드 하얏트 서울 야외 아이스링크@r","워커힐 스파@r");
 COURSE.n.stay.push("서울신라호텔@r","롯데호텔 서울@r","롯데호텔 월드@r","그랜드 하얏트 서울@r","웨스틴 조선 서울@r","쉐라톤 워커힐@r","리츠칼튼 서울@r","서울 힐튼@r","서울프라자호텔@r","호텔 인터컨티넨탈 서울@r","신라호텔 스위트룸@top","장급 여관@c","여인숙@low");
 COURSE.n.stay=COURSE.n.stay.filter(x=>x!=='호텔 체크인@r');
-COURSE.m.act.push("북악스카이웨이 드라이브@drive","양평 강변 드라이브@drive","인천대교 건너 드라이브@drive","자동차 극장@drive","드라이브스루 커피 들고 교외로@drive");
-COURSE.m.rest.push("전망 좋은 휴게소@drive","드라이브스루 카페@drive");
+COURSE.m.act.push("북악스카이웨이 드라이브@drive","올림픽대로 한강 드라이브@drive","자동차 극장@drive","인왕산 스카이웨이 드라이브@drive");
+COURSE.m.rest.push("드라이브스루 카페@drive","한강공원 주차장에서 차 안 커피@drive");
 COURSE.m.night.push("한강 다리 야경 드라이브@drive","남산 순환로 야경 드라이브@drive");
-COURSE.n.act.push("자동차 극장@drive","경춘국도 드라이브@drive");COURSE.n.rest.push("고속도로 휴게소 호두과자@drive");
+COURSE.n.act.push("자동차 극장@drive","강변북로 드라이브@drive");
 COURSE.f.act.push("마차 타고 교외 나들이@drive");
 // 여행 코스 도시 — a:1 해외, a:0 국내 / meal 아침·점심, act 구경, rest 쉬기, din 저녁, night 밤, stay 숙소
 const CITIES=[
@@ -600,12 +601,15 @@ const CITIES=[
 {n:"동해 묵호",a:0,meal:"묵호항 물회|곰치국|바다 뷰 브런치 카페@m",act:"논골담길 벽화마을@w|묵호등대|도째비골 스카이밸리@m|해랑전망대@m|망상해변|어달해변 산책@w",rest:"묵호 바다 뷰 카페|논골담길 카페@m",din:"묵호항 회센터|문어 요리 맛집|해물탕",night:"묵호등대 야경|해랑전망대 야간 조명@m|해변 산책@w",stay:"오션뷰 호텔@r|바닷가 펜션|게스트하우스@c"},
 {n:"속초",a:0,meal:"순두부 정식|물회|아바이순대@c",act:"설악산 케이블카|영금정|아바이마을 갯배 타기|속초 중앙시장 구경@w|청초호 산책@w|외옹치 바다향기로@m,w",rest:"바다 뷰 카페|닭강정 사 들고 해변 벤치@c",din:"대게 코스@r|생선구이 골목|회 센터",night:"속초 아이 대관람차@m|청초호 야경|해변 산책@w",stay:"오션뷰 리조트@r|호텔|게스트하우스@c"},
 {n:"양양",a:0,meal:"막국수|바다 뷰 브런치@m",act:"서피비치 서핑@m|죽도해변 서핑 강습@m|낙산사|하조대|남애항 스카이워크@m",rest:"서핑 카페@m|해변 파라솔",din:"섭국|해산물 포차@c|바비큐 펍@m",night:"서피비치 선셋 바@m|해변 모닥불@m|해변 산책@w",stay:"오션뷰 리조트@r|서핑 게스트하우스@c|풀빌라 펜션@r"},
-{n:"춘천·가평",a:0,meal:"막국수|닭갈비 골목",act:"남이섬|김유정 레일바이크@m|소양강 스카이워크@m|쁘띠프랑스@m|자라섬 산책@w|의암호 카누@m",rest:"호수 뷰 카페|감자빵 카페@m",din:"숯불 닭갈비|송어회|바비큐 펜션 저녁",night:"호숫가 산책@w|펜션 바비큐와 별 보기|캠프파이어",stay:"호수 뷰 리조트@r|풀빌라 펜션@r|펜션@c"},
+{n:"춘천·가평",a:0,near:1,meal:"막국수|닭갈비 골목",act:"남이섬|김유정 레일바이크@m|소양강 스카이워크@m|쁘띠프랑스@m|자라섬 산책@w|의암호 카누@m",rest:"호수 뷰 카페|감자빵 카페@m",din:"숯불 닭갈비|송어회|바비큐 펜션 저녁",night:"호숫가 산책@w|펜션 바비큐와 별 보기|캠프파이어",stay:"호수 뷰 리조트@r|풀빌라 펜션@r|펜션@c"},
 {n:"평창·정선",a:0,meal:"메밀전병|곤드레밥|황태 해장국",act:"대관령 양떼목장|정선 레일바이크|정선 오일장 구경@w|스키장@winter|월정사 전나무숲길@w|발왕산 케이블카@m",rest:"산장 카페|목장 아이스크림",din:"한우 구이@r|송어회|산채 정식",night:"별 보기|리조트 온천@r|스키장 야간 스키@m,winter",stay:"스키 리조트@r|산속 펜션|게스트하우스@c"},
 {n:"단양·제천",a:0,meal:"마늘 정식|올갱이 해장국",act:"패러글라이딩|도담삼봉|만천하스카이워크@m|단양강 잔도 산책@m,w|청풍호 케이블카@m|의림지 산책@w",rest:"강 뷰 카페|구경시장 마늘빵@m",din:"쏘가리 매운탕|마늘 떡갈비|약채 정식",night:"단양강 야경 산책@w|리조트 스파@r",stay:"강 뷰 리조트@r|펜션|게스트하우스@c"},
-{n:"수원",a:0,meal:"통닭 거리@c|갈비 정식@r|행궁동 브런치@m",act:"수원화성 성곽길 걷기@w|화성행궁|행궁동 골목 구경@m,w|광교호수공원 산책@w|플라잉수원 열기구@m|화성 활쏘기 체험",rest:"행궁동 한옥 카페@m|호수 뷰 카페",din:"수원 왕갈비@r|통닭 거리@c|행궁동 이자카야@m",night:"화성 성곽 야경 산책@w|방화수류정 야경|광교 호수 야경",stay:"호텔@r|비즈니스 호텔|게스트하우스@c"},
-{n:"인천",a:0,meal:"차이나타운 짜장면|신포시장 닭강정@c|송도 브런치@m",act:"차이나타운·동화마을|월미도 바다열차@m|개항장 거리@w|을왕리 해변|송도 센트럴파크 보트@m|강화도 드라이브",rest:"개항장 카페|바다 뷰 카페",din:"조개구이|짬뽕 맛집|송도 레스토랑@m,r",night:"월미도 놀이공원|송도 야경 산책@m,w|을왕리 일몰",stay:"송도 호텔@m,r|호텔|게스트하우스@c"},
-{n:"파주·양평",a:0,meal:"장단콩 두부|쌈밥 정식|대형 베이커리 카페 브런치@m",act:"헤이리 예술마을@w|출판도시 북카페|두물머리 산책@w|세미원|마장호수 출렁다리@m|임진각",rest:"대형 베이커리 카페@m|강 뷰 카페",din:"장어구이|한정식@r|두부 전골",night:"강변 드라이브|프리미엄 아울렛 야간 쇼핑@m",stay:"강 뷰 펜션|리조트@r|게스트하우스@c"},
+{n:"용인",a:0,near:1,meal:"백암순대국@c|브런치 카페|고기리 막국수@m",act:"용인 호수 드라이브@drive|에버랜드@w|한국민속촌@w|호암미술관|자연휴양림 산책@w|에버랜드 판다월드@m",rest:"호수 뷰 카페|대형 베이커리 카페@m",din:"갈비 정식|한정식@r|숯불 닭갈비",night:"에버랜드 야간 퍼레이드|드라이브",stay:"리조트@r|호텔|펜션"},
+{n:"남양주·하남",a:0,near:1,meal:"강변 브런치 카페@m|초계국수",act:"팔당 강변 드라이브@drive|물의정원 산책@w|스타필드 하남 쇼핑@m|미사리 조정경기장 산책@w|수종사 전망@w|팔당 자전거길@w",rest:"한강 뷰 대형 카페@m|베이커리 카페@m",din:"장어구이|오리 백숙|라이브 카페 저녁",night:"팔당댐 야경 드라이브|미사리 라이브 카페",stay:"강변 펜션|호텔|게스트하우스@c"},
+{n:"포천",a:0,near:1,meal:"이동갈비|산정호수 막국수",act:"한탄강 드라이브@drive|포천아트밸리@m|산정호수 둘레길@w|허브아일랜드@m|국립수목원@w|한탄강 하늘다리@m|비둘기낭 폭포",rest:"호수 뷰 카페|허브 카페",din:"이동갈비 정식|계곡 백숙",night:"허브아일랜드 불빛축제@m|온천@r|별 보기",stay:"온천 리조트@r|펜션|글램핑@m"},
+{n:"수원",a:0,near:1,meal:"통닭 거리@c|갈비 정식@r|행궁동 브런치@m",act:"수원화성 성곽길 걷기@w|화성행궁|행궁동 골목 구경@m,w|광교호수공원 산책@w|플라잉수원 열기구@m|화성 활쏘기 체험",rest:"행궁동 한옥 카페@m|호수 뷰 카페",din:"수원 왕갈비@r|통닭 거리@c|행궁동 이자카야@m",night:"화성 성곽 야경 산책@w|방화수류정 야경|광교 호수 야경",stay:"호텔@r|비즈니스 호텔|게스트하우스@c"},
+{n:"인천",a:0,near:1,meal:"차이나타운 짜장면|신포시장 닭강정@c|송도 브런치@m",act:"인천대교 건너 드라이브@drive|차이나타운·동화마을|월미도 바다열차@m|개항장 거리@w|을왕리 해변|송도 센트럴파크 보트@m|강화도 드라이브",rest:"개항장 카페|바다 뷰 카페",din:"조개구이|짬뽕 맛집|송도 레스토랑@m,r",night:"월미도 놀이공원|송도 야경 산책@m,w|을왕리 일몰",stay:"송도 호텔@m,r|호텔|게스트하우스@c"},
+{n:"파주·양평",a:0,near:1,meal:"장단콩 두부|쌈밥 정식|대형 베이커리 카페 브런치@m",act:"양평 강변 드라이브@drive|헤이리 예술마을@w|출판도시 북카페|두물머리 산책@w|세미원|마장호수 출렁다리@m|임진각",rest:"대형 베이커리 카페@m|강 뷰 카페",din:"장어구이|한정식@r|두부 전골",night:"강변 드라이브|프리미엄 아울렛 야간 쇼핑@m",stay:"강 뷰 펜션|리조트@r|게스트하우스@c"},
 {n:"태안·보령",a:0,meal:"게국지|바지락 칼국수@c",act:"꽃지해변|안면도 자연휴양림@w|신두리 해안사구@w|대천해수욕장|보령 스카이바이크@m|해저터널@m",rest:"바다 뷰 카페|해변 파라솔",din:"대하구이@autumn|조개구이|회 센터",night:"꽃지해변 일몰|해변 불꽃놀이|대천 야시장",stay:"오션뷰 리조트@r|펜션|민박@c"},
 {n:"군산·전주",a:0,meal:"이성당 빵|짬뽕 맛집|콩나물국밥@c",act:"군산 근대역사거리@w|경암동 철길마을@w|초원사진관|은파호수공원|전주 한옥마을@w|전동성당",rest:"근대풍 카페@m|한옥 찻집",din:"군산 박대구이|한정식@r|막걸리 골목",night:"은파호수 물빛다리 야경|한옥마을 야경@w",stay:"한옥 스테이|호텔|게스트하우스@c"},
 {n:"목포",a:0,meal:"낙지 비빔밥|민어회 정식@r|떡갈비",act:"목포 해상케이블카@m|근대역사거리@w|갓바위|유달산 산책@w|삼학도 공원",rest:"근대 건물 카페@m|바다 뷰 카페",din:"세발낙지|홍어 삼합|꽃게 무침",night:"평화광장 춤추는 바다분수|해상케이블카 야경@m|바다 산책@w",stay:"오션뷰 호텔@r|호텔|게스트하우스@c"},
@@ -617,7 +621,7 @@ const CITIES=[
 {n:"대구",a:0,meal:"납작만두@c|따로국밥|막창 골목",act:"김광석 다시그리기길@w|서문시장 구경@w|근대골목 투어@w|수성못 오리배|앞산 케이블카|이월드",rest:"동성로 카페|근대골목 카페",din:"막창 골목|동인동 찜갈비|한우 오마카세@m,r",night:"서문시장 야시장@m|앞산 전망대 야경|83타워 야경",stay:"호텔@r|비즈니스 호텔|게스트하우스@c"},
 {n:"울릉도",a:0,dep:"포항에서 울릉도행 배",meal:"따개비 칼국수|오징어 내장탕|약소 불고기@r",act:"행남해안 산책로@w|나리분지@w|독도 전망대 케이블카|섬 일주 드라이브|관음도 연도교",rest:"바다 뷰 카페|항구 벤치",din:"오징어회|홍합밥|약소 구이@r",night:"저동항 야경|별 보기",stay:"바다 뷰 펜션|리조트@r|민박@c"}];
 const FILL={meal:"숙소 조식|현지 로컬 식당|골목 빵집",act:"현지 시장 구경@w|골목 산책@w|기념품 쇼핑",rest:"골목 카페|숙소에서 낮잠",din:"현지 맛집|숙소 근처 레스토랑",night:"숙소 근처 산책@w|룸서비스 야식",stay:"호텔"};
-FILL.act+="|해안도로 드라이브@drive|렌터카로 근교 드라이브@drive";FILL.night+="|차 안에서 야경 보기@drive";FILL.rest+="|전망 좋은 휴게소@drive";
+FILL.act+="|차 타고 주변 드라이브@drive";FILL.night+="|차 안에서 야경 보기@drive";FILL.rest+="|전망 좋은 휴게소@drive";
 
 /* ---------- 파싱 ---------- */
 const ERAS=['m','n','g','j','f','s','w'];const INH={s:['m']};
@@ -695,8 +699,8 @@ function cityPlaces(n){const key=n+'|'+(['trip','all'].includes(cat)?1:0);if(CP[
   ['meal','act','rest','din','night','stay'].forEach(k=>c[k].forEach(x=>{if(k==='stay'&&!['trip','all'].includes(cat))return;const tg=spotTags(x.t,k);x.tags.forEach(t=>tg.add(t));if(c.a)tg.add('abroad');out.push({t:`${c.n} · ${x.t}`,tags:tg,need:[],cat:'trip'})}));
   return CP[key]=out}
 function fillRegion(){const sel=$('#region');
-  const kr=CI.filter(c=>!c.a),ab=CI.filter(c=>c.a);
-  sel.innerHTML='<option value="">전체 랜덤</option><optgroup label="국내">'+kr.map(c=>`<option>${c.n}</option>`).join('')+'</optgroup><optgroup label="해외">'+ab.map(c=>`<option>${c.n}</option>`).join('')+'</optgroup>';
+  const nr=CI.filter(c=>c.near),kr=CI.filter(c=>!c.a&&!c.near),ab=CI.filter(c=>c.a),og=(l,a)=>`<optgroup label="${l}">`+a.map(c=>`<option>${c.n}</option>`).join('')+'</optgroup>';
+  sel.innerHTML='<option value="">전체 랜덤</option>'+og('서울 근교',nr)+og('국내',kr)+og('해외',ab);
   sel.value=CI.some(c=>c.n===region)?region:'';region=sel.value;syncRegion()}
 function syncRegion(){$('#regionRow').style.display=regionOK()?'':'none';
   $('#regionHint').textContent=region&&regionOK()?(cat==='home'?'· 집 안 탭은 지역과 상관없이 나와요':'· 장소가 이 지역 안에서만 나와요'):''}
@@ -783,7 +787,7 @@ function evText(){
 }
 
 /* ---------- 코스 모드 ---------- */
-const CI=CITIES.map(c=>{const o={n:c.n,a:c.a,dep:c.dep};['meal','act','rest','din','night','stay'].forEach(k=>o[k]=c[k].split('|').map(P));return o});
+const CI=CITIES.map(c=>{const o={n:c.n,a:c.a,dep:c.dep,near:c.near};['meal','act','rest','din','night','stay'].forEach(k=>o[k]=c[k].split('|').map(P));return o});
 const FI={};for(const k in FILL)FI[k]=FILL[k].split('|').map(P);
 CI.forEach(c=>c.stay.forEach(freeAll));FI.stay.forEach(freeAll);
 /* 드라이브로 갈 만한 곳 자동 표시 */
@@ -804,12 +808,12 @@ function pickC(type,used,city){
   let pools;
   if(city){const k=CMAP[type];pools=[city[k],FI[k]]}else pools=[CO[cKey()][type]];
   const o=opt();
-  if(o.drive&&['act','night','rest'].includes(type)&&Math.random()<(type==='rest'?.5:.8)){const dl=pools.flat().filter(x=>x.tags.has('drive')&&okC(x)&&!used.has(x.t));if(dl.length)return rnd(dl).t}
+  if(o.drive&&['act','night','rest'].includes(type)&&Math.random()<(type==='rest'?.5:.8)){for(const pl of pools){const dl=pl.filter(x=>x.tags.has('drive')&&okC(x)&&!used.has(x.t));if(dl.length)return rnd(dl).t}}
   for(const pl of pools){const l=pl.filter(x=>okC(x)&&!used.has(x.t));if(l.length)return rnd(l).t}
   const any=pools.flat().filter(okC);return rnd(any.length?any:pools.flat()).t;
 }
 const hm=(h,m)=>String(h).padStart(2,'0')+':'+(m?'30':'00');
-function cityList(dest){return CI.filter(c=>dest==='abroad'?c.a:!c.a)}
+function cityList(dest){return CI.filter(c=>dest==='abroad'?c.a:dest==='near'?c.near:(!c.a&&!c.near))}
 function plan(){
   const o=opt(),D=o.len,p=[];
   if(o.dest==='local'){
@@ -835,7 +839,7 @@ function plan(){
   if(D===1){
     p.push({day:0,type:'dep',lab:'08:00',fixed:dep});
     [['meal1',12,0],['act',14,0],['rest',16,0],['meal2',18,1]].forEach(([t,h,m])=>p.push({day:0,type:t,lab:hm(h,m)}));
-    p.push({day:0,type:'end',lab:'21:00',fixed:'집으로 출발'});return p;
+    p.push({day:0,type:'end',lab:'21:00',fixed:o.dest==='near'?'서울로 돌아가기':'집으로 출발'});return p;
   }
   for(let d=0;d<D;d++){
     if(d===0){
@@ -846,7 +850,7 @@ function plan(){
       [['meal1',10,0],['act',12,0],[Math.random()<.5?'rest':'act',15,0],['meal2',18,1],['night',21,0]].forEach(([t,h,m])=>p.push({day:d,type:t,lab:hm(h,m)}));
     }else{
       [['meal1',10,0],['act',12,0]].forEach(([t,h,m])=>p.push({day:d,type:t,lab:hm(h,m)}));
-      p.push({day:d,type:'end',lab:'15:00',fixed:o.dest==='abroad'?'공항으로 이동 · 귀국':'집으로 출발'});
+      p.push({day:d,type:'end',lab:'15:00',fixed:o.dest==='abroad'?'공항으로 이동 · 귀국':(o.dest==='near'?'서울로 돌아가기':'집으로 출발')});
     }
   }
   return p;
