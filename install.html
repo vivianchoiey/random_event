@@ -1,0 +1,32 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>랜덤 데이트 발생기 · 제타에서 쓰기</title>
+<style>
+@font-face{font-family:ND;src:url(fonts/neodgm.woff2)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#fbf1dc;background-image:linear-gradient(rgba(43,29,58,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(43,29,58,.045) 1px,transparent 1px);background-size:8px 8px;color:#2b1d3a;font:16px/1.75 ND,monospace;padding:28px 16px 60px}
+.w{max-width:640px;margin:0 auto}
+h1{background:#2b1d3a;color:#ffd23f;font-size:32px;font-weight:400;padding:14px 18px;margin:4px 4px 24px;box-shadow:0 -4px 0 #2b1d3a,0 4px 0 #2b1d3a,-4px 0 0 #2b1d3a,4px 0 0 #2b1d3a}
+.box{background:#fffaf0;padding:16px 18px;margin:4px 4px 26px;box-shadow:0 -4px 0 #2b1d3a,0 4px 0 #2b1d3a,-4px 0 0 #2b1d3a,4px 0 0 #2b1d3a,8px 8px 0 rgba(43,29,58,.2)}
+h2{font-size:16px;font-weight:400;color:#fff;background:#ff5c8d;display:inline-block;padding:0 8px;margin-bottom:10px}
+ol{padding-left:22px} li{margin:4px 0}
+.btn{display:inline-block;margin:10px 0 4px;background:#4fbf9f;color:#fff;text-decoration:none;padding:8px 16px;font:16px ND;border:0;cursor:pointer;box-shadow:0 -3px 0 #2b1d3a,0 3px 0 #2b1d3a,-3px 0 0 #2b1d3a,3px 0 0 #2b1d3a}
+.btn.p{background:#ff5c8d} .btn.s{background:#7ec8f2;color:#2b1d3a}
+code{display:block;background:#2b1d3a;color:#fdf6e8;font:13px/1.5 monospace;padding:10px;word-break:break-all;margin-top:8px}
+small{color:#7b6a86}
+</style></head><body><div class="w">
+<h1>▶ 제타에서 쓰기</h1>
+<div class="box"><h2>이렇게 돼요</h2>
+<p>제타 채팅방 구석에 작은 주사위 버튼이 생겨요. 누르면 발생기 창이 열리고, 뽑은 다음 <b>▶ START</b>를 누르면 메시지 칸에 바로 들어가요. 전송만 누르면 끝!</p></div>
+<div class="box"><h2>PC · 북마클릿</h2>
+<ol><li>아래 분홍 버튼을 <b>즐겨찾기 바로 끌어다 놓아요</b>.</li><li>제타 채팅방에서 그 즐겨찾기를 누르면 주사위 버튼이 생겨요.</li></ol>
+<a class="btn p" href="javascript:(function(){if(window.__RDE__){__RDE__.toggle();return}var s=document.createElement(&#x27;script&#x27;);s.src=&#x27;https://randomevent.vercel.app/zeta-dice.js?v=&#x27;+Date.now();document.body.appendChild(s)})()" onclick="event.preventDefault()">🎲 데이트 발생기</a><br><small>끌어다 놓기가 안 되면 아래 [코드 복사]를 눌러서 새 즐겨찾기 주소 칸에 붙여넣어요.</small></div>
+<div class="box"><h2>폰 · 북마클릿</h2>
+<ol><li>[코드 복사]를 눌러요.</li><li>아무 페이지나 즐겨찾기에 추가한 다음, 그 즐겨찾기를 편집해서 <b>주소(URL) 칸을 지우고 복사한 코드를 붙여넣어요</b>. 이름은 "데이트 발생기"로 해요.</li><li>제타 채팅방에서 주소창에 "데이트 발생기"를 쳐서 나온 즐겨찾기를 누르거나, 즐겨찾기 목록에서 눌러요.</li></ol>
+<button class="btn s" id="cp">코드 복사</button><code id="bm">javascript:(function(){if(window.__RDE__){__RDE__.toggle();return}var s=document.createElement(&#x27;script&#x27;);s.src=&#x27;https://randomevent.vercel.app/zeta-dice.js?v=&#x27;+Date.now();document.body.appendChild(s)})()</code></div>
+<div class="box"><h2>탬퍼몽키 · 유저스크립트</h2>
+<p>탬퍼몽키가 깔려 있으면 아래 버튼만 누르면 돼요. 제타 들어가면 주사위 버튼이 알아서 생기고, 업데이트도 자동이에요.</p>
+<a class="btn" href="zeta-dice.user.js">유저스크립트 설치</a></div>
+<p style="text-align:center"><a href="./" style="color:#2b1d3a">← 발생기로 돌아가기</a></p>
+</div>
+<script>document.getElementById('cp').onclick=async()=>{const t=document.getElementById('bm').textContent;try{await navigator.clipboard.writeText(t);document.getElementById('cp').textContent='복사했어요!'}catch(e){const r=document.createRange();r.selectNodeContents(document.getElementById('bm'));getSelection().removeAllRanges();getSelection().addRange(r);document.getElementById('cp').textContent='길게 눌러 복사해요'}}</script>
+</body></html>

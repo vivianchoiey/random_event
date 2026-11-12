@@ -109,6 +109,19 @@ input[type=checkbox]:checked::after,input[type=radio]:checked::after{content:'';
 .big{display:flex;align-items:center;justify-content:center;gap:8px}
 .foot{color:var(--sub);margin:24px 6px 0;text-align:center}
 @media (prefers-reduced-motion:reduce){.bgm.on .eq i,.blink,.out::after{animation:none}}
+
+/* 제타 안에 띄웠을 때(embed) */
+body.embed{padding:12px 10px 30px}
+body.embed .titlebar,body.embed .foot{display:none}
+.ins{background:var(--mint);color:#fff}
+body.embed .hint,body.embed .count,body.embed #outEv,body.embed #outCo{display:none}
+body.embed:not(.setopen) .set,body.embed:not(.setopen) #courseMode .opts,body.embed:not(.setopen) .toolbar,body.embed:not(.setopen) #regionRow{display:none!important}
+body.embed .row{padding:8px 12px}body.embed .tabs{margin-bottom:10px}
+.setbtn{display:none}
+body.embed .setbtn{display:flex;width:calc(100% - 8px);margin:0 4px 16px;justify-content:space-between;gap:8px;text-align:left}
+body.embed .setbtn span{color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.embed .main{flex-wrap:wrap;gap:14px 16px}
+body.embed .main .ins{order:-1;flex:1 0 100%;font-size:calc(var(--fs) * 1.25)}
 </style>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -122,6 +135,7 @@ input[type=checkbox]:checked::after,input[type=radio]:checked::after{content:'';
   <div class="toolbar">
     <button class="tab bgm" id="bgmBtn" type="button" aria-pressed="false"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span id="bgmLab">BGM 켜기</span></button>
   </div>
+  <button class="tab setbtn" id="setBtn" type="button">⚙ 설정<span id="setSum"></span></button>
   <div class="tabs" id="modeTabs">
     <button class="tab on" data-mode="event">사건 뽑기</button>
     <button class="tab" data-mode="course">코스 뽑기</button>
@@ -203,7 +217,7 @@ input[type=checkbox]:checked::after,input[type=radio]:checked::after{content:'';
     <div class="out" id="outCo"></div>
     <p class="count" id="countCo"></p>
   </section>
-<p class="foot">배경음악: 직접 제작한 곡이라 저작권 걱정 없어요 · 폰트: Neo둥근모, 갈무리 (SIL 오픈 폰트 라이선스)</p>
+<p class="foot"><a href="install.html" style="color:var(--acc)">▶ 제타 채팅방 안에서 쓰기 (북마클릿·유저스크립트)</a><br>배경음악: 직접 제작한 곡이라 저작권 걱정 없어요 · 폰트: Neo둥근모, 갈무리 (SIL 오픈 폰트 라이선스)</p>
 </div>
 <div class="toast" id="toast">복사했어요</div>
 
@@ -963,6 +977,21 @@ $('#bgmBtn').onclick=()=>{BGM.on=!BGM.on;store.set('ev_bgm',BGM.on?'on':'off');b
 // 지난번에 켜둔 사람은 화면을 처음 누를 때 다시 켜짐
 if(store.get('ev_bgm','off')==='on'){const once=e=>{if(e.target.closest('#bgmBtn'))return;document.removeEventListener('pointerdown',once,true);BGM.on=true;bgmUI();bgmStart()};document.addEventListener('pointerdown',once,true)}
 bgmUI();
+
+/* ---------- 제타 안에 띄웠을 때: [입력창에 넣기] ---------- */
+const PARENT=window.parent!==window?window.parent:(window.opener||null);
+if(PARENT||/embed=1/.test(location.search)){
+  document.body.classList.add('embed');
+  const mk=(after,getText,kind)=>{const b=document.createElement('button');b.className='big ins';b.textContent='▶ START';
+    b.onclick=()=>{if(!PARENT){toast('제타 화면에서 열어야 돼요');return}PARENT.postMessage({src:'rde',type:'insert',text:getText(),kind},'*')};after.parentNode.insertBefore(b,after)};
+  mk($('#copyEv'),evText,'event');mk($('#copyCo'),coText,'course');
+  const setSum=()=>{const e={m:'현대',n:'90년대',g:'경성',j:'조선',f:'로판',s:'센티넬버스',w:'무협'}[era];const c=CLS_LABEL[era][CLS_KEYS.indexOf(cls)];const nm=names();const rg=regionOK()&&region?' / '+region:'';$('#setSum').textContent=`${nm.M}·${nm.F} / ${e} / ${c}${rg}`};
+  $('#setBtn').onclick=()=>{document.body.classList.toggle('setopen');$('#setBtn').firstChild.textContent=document.body.classList.contains('setopen')?'⚙ 설정 접기':'⚙ 설정'};
+  setSum();document.addEventListener('click',()=>setTimeout(setSum,0));document.addEventListener('input',()=>setTimeout(setSum,0));
+
+  
+  if(PARENT)PARENT.postMessage({src:'rde',type:'ready'},'*');
+}
 fillRegion();
 $('#region').onchange=e=>{region=e.target.value;store.set('ev_region',region);syncRegion();['place','event'].forEach(k=>{if(!locks[k])roll(k)});fixChain('place');renderEv()};
 FIELDS.forEach(([k])=>roll(k));fixChain();renderEv();syncCourseUI();rollCourse();
