@@ -125,6 +125,7 @@ body.embed .main .ins{order:-1;flex:1 0 100%;flex-direction:column;gap:2px;paddi
 .ins .st1{font-size:calc(var(--fs) * 1.25)}
 .ins .st2{font-size:var(--fs);opacity:.9}
 body.embed .main .cp{flex:0 0 auto;padding:10px 14px;font-size:var(--fs)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.zt{font:inherit;font-size:var(--fs);text-decoration:none;color:inherit;display:inline-flex;align-items:center}.zhelp{opacity:.8}body.embed .zt{display:none!important}
 </style>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -137,6 +138,9 @@ body.embed .main .cp{flex:0 0 auto;padding:10px 14px;font-size:var(--fs)}
   </div>
   <div class="toolbar">
     <button class="tab bgm" id="bgmBtn" type="button" aria-pressed="false"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span id="bgmLab">BGM 켜기</span></button>
+    <button class="tab zt" id="bmCopy" type="button" title="제타 채팅방에 작은 주사위 버튼을 띄우는 북마크 코드를 복사해요">📋 제타용 북마클릿 복사</button>
+    <a class="tab zt" href="zeta-dice.user.js" target="_blank" rel="noopener" title="탬퍼몽키가 있으면 바로 설치 화면이 떠요">⬇ 유저스크립트 설치</a>
+    <a class="tab zt zhelp" href="install.html" target="_blank" rel="noopener">설치 방법?</a>
   </div>
   <button class="tab setbtn" id="setBtn" type="button">⚙ 설정<span id="setSum"></span></button>
   <div class="tabs" id="modeTabs">
@@ -941,6 +945,8 @@ function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');se
 async function copy(txt){try{await navigator.clipboard.writeText(txt);toast('복사했어요')}catch(e){
   const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();
   try{document.execCommand('copy');toast('복사했어요')}catch(_){toast('복사가 막혀 있어요. 아래 글을 길게 눌러 복사해 주세요')}ta.remove()}}
+const BM="javascript:(function(){if(window.__RDE__){__RDE__.toggle();return}var s=document.createElement('script');s.src='https://randomevent.vercel.app/zeta-dice.js?v='+Date.now();document.body.appendChild(s)})()";
+$('#bmCopy').onclick=async()=>{await copy(BM);toast('복사했어요! 북마크 주소칸에 붙여넣기')};
 $('#copyEv').onclick=()=>copy(evText());$('#copyCo').onclick=()=>copy(coText());
 ['nM','nF'].forEach(id=>$('#'+id).oninput=e=>{store.set('ev_'+id,e.target.value);renderEv();renderCo()});
 document.querySelectorAll('#modeTabs .tab').forEach(b=>b.onclick=()=>{
