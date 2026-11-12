@@ -121,7 +121,10 @@ body.embed .row{padding:8px 12px}body.embed .tabs{margin-bottom:10px}
 body.embed .setbtn{display:flex;width:calc(100% - 8px);margin:0 4px 16px;justify-content:space-between;gap:8px;text-align:left}
 body.embed .setbtn span{color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 body.embed .main{flex-wrap:wrap;gap:14px 16px}
-body.embed .main .ins{order:-1;flex:1 0 100%;font-size:calc(var(--fs) * 1.25)}
+body.embed .main .ins{order:-1;flex:1 0 100%;flex-direction:column;gap:2px;padding:10px}
+.ins .st1{font-size:calc(var(--fs) * 1.25)}
+.ins .st2{font-size:var(--fs);opacity:.9}
+body.embed .main .cp{flex:0 0 auto;padding:10px 14px;font-size:var(--fs)}
 </style>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -982,9 +985,10 @@ bgmUI();
 const PARENT=window.parent!==window?window.parent:(window.opener||null);
 if(PARENT||/embed=1/.test(location.search)){
   document.body.classList.add('embed');
-  const mk=(after,getText,kind)=>{const b=document.createElement('button');b.className='big ins';b.textContent='▶ START';
+  const mk=(after,getText,kind)=>{const b=document.createElement('button');b.className='big ins';b.innerHTML='<span class="st1">▶ START</span><span class="st2">채팅 입력칸에 바로 넣어요</span>';
     b.onclick=()=>{if(!PARENT){toast('제타 화면에서 열어야 돼요');return}PARENT.postMessage({src:'rde',type:'insert',text:getText(),kind},'*')};after.parentNode.insertBefore(b,after)};
   mk($('#copyEv'),evText,'event');mk($('#copyCo'),coText,'course');
+  $('#copyEv').textContent='복사만 하기';$('#copyCo').textContent='복사만 하기';
   const setSum=()=>{const e={m:'현대',n:'90년대',g:'경성',j:'조선',f:'로판',s:'센티넬버스',w:'무협'}[era];const c=CLS_LABEL[era][CLS_KEYS.indexOf(cls)];const nm=names();const rg=regionOK()&&region?' / '+region:'';$('#setSum').textContent=`${nm.M}·${nm.F} / ${e} / ${c}${rg}`};
   $('#setBtn').onclick=()=>{document.body.classList.toggle('setopen');$('#setBtn').firstChild.textContent=document.body.classList.contains('setopen')?'⚙ 설정 접기':'⚙ 설정'};
   setSum();document.addEventListener('click',()=>setTimeout(setSum,0));document.addEventListener('input',()=>setTimeout(setSum,0));
