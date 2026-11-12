@@ -985,9 +985,12 @@ bgmUI();
 const PARENT=window.parent!==window?window.parent:(window.opener||null);
 if(PARENT||/embed=1/.test(location.search)){
   document.body.classList.add('embed');
-  const mk=(after,getText,kind)=>{const b=document.createElement('button');b.className='big ins';b.innerHTML='<span class="st1">▶ START</span><span class="st2">채팅 입력칸에 바로 넣어요</span>';
-    b.onclick=()=>{if(!PARENT){toast('제타 화면에서 열어야 돼요');return}PARENT.postMessage({src:'rde',type:'insert',text:getText(),kind},'*')};after.parentNode.insertBefore(b,after)};
-  mk($('#copyEv'),evText,'event');mk($('#copyCo'),coText,'course');
+  const mk=(after,getText,kind,label)=>{const b=document.createElement('button');b.className='big ins';b.innerHTML='<span class="st1"></span><span class="st2">채팅에 바로 이어져요</span>';b.querySelector('.st1').textContent=label;
+    b.onclick=()=>{if(!PARENT){toast('제타 화면에서 열어야 돼요');return}PARENT.postMessage({src:'rde',type:'insert',text:getText(),kind},'*')};after.parentNode.insertBefore(b,after);return b};
+  mk($('#copyEv'),evText,'event','▶ 이 장면으로 넘어가기');
+  const coBtn=mk($('#copyCo'),coText,'course','▶ 이 코스로 데이트 가기');
+  const coLabel=()=>{const trip=slots.length&&slots[slots.length-1].day>0;coBtn.querySelector('.st1').textContent=trip?'▶ 이 일정으로 여행 떠나기':'▶ 이 코스로 데이트 가기'};
+  const _renderCo=renderCo;renderCo=function(){_renderCo.apply(this,arguments);coLabel()};
   $('#copyEv').textContent='복사만 하기';$('#copyCo').textContent='복사만 하기';
   const setSum=()=>{const e={m:'현대',n:'90년대',g:'경성',j:'조선',f:'로판',s:'센티넬버스',w:'무협'}[era];const c=CLS_LABEL[era][CLS_KEYS.indexOf(cls)];const nm=names();const rg=regionOK()&&region?' / '+region:'';$('#setSum').textContent=`${nm.M}·${nm.F} / ${e} / ${c}${rg}`};
   $('#setBtn').onclick=()=>{document.body.classList.toggle('setopen');$('#setBtn').firstChild.textContent=document.body.classList.contains('setopen')?'⚙ 설정 접기':'⚙ 설정'};
