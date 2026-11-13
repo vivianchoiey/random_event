@@ -126,6 +126,7 @@ body.embed .main .ins{order:-1;flex:1 0 100%;flex-direction:column;gap:2px;paddi
 .ins .st2{font-size:var(--fs);opacity:.9}
 body.embed .main .cp{flex:0 0 auto;padding:10px 14px;font-size:var(--fs)}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.zt{font:inherit;font-size:var(--fs);text-decoration:none;color:inherit;display:inline-flex;align-items:center}.zhelp{opacity:.8}body.embed .zt{display:none!important}
+.prow{margin:10px 0 2px;display:flex;flex-direction:column;gap:10px}.plbl{color:var(--sub);align-self:center;margin-right:4px}.rubyl{display:flex;align-items:center;gap:6px;font-size:var(--fs)}.phint{color:var(--sub);font-size:var(--fs);margin:0}
 </style>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -162,8 +163,15 @@ body.embed .main .cp{flex:0 0 auto;padding:10px 14px;font-size:var(--fs)}
       <button class="tab" data-v="f">로판 (서양풍 귀족)</button>
       <button class="tab" data-v="s">센티넬버스</button>
       <button class="tab" data-v="w">무협</button>
+      <button class="tab" data-v="p">페르녹스</button>
     </div>
-    <h2>사는 형편</h2>
+    <div id="pRow" class="prow">
+      <div class="tabs seg" id="phTabs"><span class="plbl">시기</span><button class="tab" data-v="st">안정기 (돔시티)</button><button class="tab" data-v="ea">초기 개척 (막영지)</button></div>
+      <div class="tabs seg" id="pmTabs"><span class="plbl">모드</span><button class="tab" data-v="peace">평화</button><button class="tab" data-v="war">전투</button></div>
+      <label class="rubyl" id="rubyLab"><input type="checkbox" id="ruby"> 루비웨이(성인 유흥가) 장소 포함</label>
+      <p class="phint" id="pHint"></p>
+    </div>
+    <h2 id="clsH">사는 형편</h2>
     <div class="tabs seg" id="clsTabs"></div>
   </div>
 
@@ -644,14 +652,114 @@ const CITIES=[
 const FILL={meal:"숙소 조식|현지 로컬 식당|골목 빵집",act:"현지 시장 구경@w|골목 산책@w|기념품 쇼핑",rest:"골목 카페|숙소에서 낮잠",din:"현지 맛집|숙소 근처 레스토랑",night:"숙소 근처 산책@w|룸서비스 야식",stay:"호텔"};
 FILL.act+="|차 타고 주변 드라이브@drive";FILL.night+="|차 안에서 야경 보기@drive";FILL.rest+="|전망 좋은 휴게소@drive";
 
+/* ---------- 페르녹스 (p) ----------
+   시기: st 안정기(돔시티) · ea 초기개척(막영지) — 둘 다 없으면 공통
+   모드: war 전투 모드에서만 · 루비웨이: ruby 체크했을 때만
+   계급(여주 기준): of 장교 · nc 부사관 · pv 병사 · cv 민간인 — 없으면 누구나 */
+const PX={
+time:["0600 기상 방송 직후@p,d,am","0730 아침 배식 시간@p,d,am","0830 오전 브리핑 끝난 직후@p,d","1200 점심 배식@p,d","1500 오후 정비 시간@p,d","1800 저녁 배식@p,n2","2000 저녁 개인정비 시간@p,n2","2200 소등 직전@p,n2,late","0200 야간 순찰 교대@p,n2,late",
+ "비번 토요일 오전 1000@p,d","외출 허가 나온 토요일 오후 1400@p,d","외출 허가 나온 토요일 저녁 1900@p,n2","귀대 직전 일요일 2000@p,n2","보급선 도착일 오후@p,d",
+ "인공 노을이 지는 1740@p,st,n2","돔 천장에 별빛이 켜지는 2100@p,st,n2","야간 음소거 시간 2300@p,st,n2,late",
+ "발전기 소음만 들리는 새벽 0300@p,ea,n2,late","먼지폭풍 지나간 다음 날 아침@p,ea,d,am","저녁 점호 끝난 직후@p,ea,n2"],
+weather:["돔 인공 하늘 맑음@p,st","돔 천장에 구름 영상이 흐르는 날@p,st","돔 밖은 먼지폭풍, 돔 안은 멀쩡@p,st","돔 천장에 눈 내리는 풍경 투영@p,st,winter","돔 천장에 지구 바다 투영@p,st,summer","잔류파장 야간 — 조명이 느리게 떨린다@p,st","돔 외벽 세척일 — 창밖이 붉은 먼지와 작업등@p,st","공조 점검으로 살짝 후텁지근한 날@p,st,hot","돔 천장에 봄 하늘 투영@p,st,spring","인공 노을이 유난히 붉은 날@p,st,autumn",
+ "바깥 기온 영하 12도@p,cold","바깥 기온 28도로 더운 날@p,hot",
+ "붉은 먼지가 낀 날@p,ea","먼지폭풍@p,ea","붉은 비@p,ea,rain","밤 기온 급강하@p,ea,cold","한낮 열기와 금속성 모래@p,ea,hot","새벽 푸른 안개@p,ea","강풍에 천막 줄이 풀리는 날@p,ea","발전기 과열로 정전된 밤@p,ea"],
+prop:["손목형 개인 단말@p","귀걸이형 무전기@p","외출 허가증@p","위치 태그@p","도그태그@p","부대 기념 패치@p","방호마스크@p","휴대용 온열팩@p","에너지바@p","진한 군용 커피@p","보온 도시락@p","전투식량 팩@p","지구산 과자 한 봉지@p","{M}의 반듯한 손글씨 쪽지@p","영상편지 저장칩@p","신호탄@p","검역 표식 스티커@p","맞춤 장갑@p","냉삼 특식 식권@p",
+ "유리꽃 장식@p,st","향열매 캔디@p,st","발광초 모형@p,st","제6행성 얼음 디저트@p,st","광물염 조미료 병@p,st","홀로그램 극장 표 두 장@p,st","별빛 관람열차 예약권@p,st","푸른돔 리조트 예약 확인 화면@p,st","장비점에서 각인한 단말 케이스@p,st","인공해변 기념 조개 모형@p,st,summer","장교 숙소 출입 카드@p,st,of","민간인 방문 출입증@p,cv",
+ "퍼퓸덴 향수병 (기록번호 각인)@p,st,ruby","은색 가면@p,st,ruby","다이스키스 칩 한 줌@p,st,ruby","블루아워 칵테일 메뉴판@p,st,ruby",
+ "손난로@p,ea","낡은 담요@p,ea","개인 물통@p,ea","잡화 트럭에서 산 향 강한 비누@p,ea","컵라면@p,ea","고기 통조림@p,ea","천막 수리용 테이프@p,ea","빈 탄피 목걸이@p,ea"],
+twist:["통신 지연으로 메시지가 18분 늦게 도착한다@p","{A}의 손목 단말로 부대 호출이 온다@p","귀대 시간이 30분 앞당겨졌다는 공지가 뜬다@p","보급선이 항로 교란으로 늦어진다는 소식이 돈다@p","같은 팀 부대원이 둘을 목격하고 수군댄다@p","{A}의 외출 허가가 하루 밀린다@p","식단표에 냉삼 특식이 올라온다@p","헌병이 복귀 시간 단속에 나섰다@p","지구에서 영상편지가 도착한다@p","부사관이 장비 점검 기록 누락을 지적한다@p","{A:이} 상처를 숨긴 걸 {B:이} 눈치챈다@p","검역 표식 없는 물건이 발견돼 잠깐 소동이 난다@p",
+ "헌병 순찰 드론이 머리 위로 지나간다@p,st","잔류파장 때문에 단말 음성이 먹먹하게 끊긴다@p,st","암시장 브로커가 관광객인 척 말을 건다@p,st","돔 천장 투영이 갑자기 지구 바다로 바뀐다@p,st","보안감사 기간이라 부대 전체가 말투를 조심한다@p,st",
+ "먼지폭풍 경보가 뜬다@p,ea","발전기가 멈춰 예비등만 남는다@p,ea","식수 배급량이 줄었다는 공지가 뜬다@p,ea","천막 줄이 풀려 같이 다시 묶어야 한다@p,ea","철판거리 브로커가 외계 잔해를 팔려고 한다@p,ea",
+ "비상 사이렌이 울린다@p,war","정찰조 연락이 끊겼다는 무전이 들어온다@p,war","감시탑에서 연속 이상 신호가 잡힌다@p,war","포자 경보가 뜨고 방호마스크 착용 지시가 내려온다@p,war","{A}에게 긴급 출동 명령이 떨어진다@p,war","외곽 방어선이 자동 봉쇄된다@p,war","폐쇄 구역에서 의태신호가 잡혔다는 보고가 올라온다@p,war","부상자 이송 차량이 정문으로 들어온다@p,war"],
+cats:{
+date:{place:[
+ "중앙광장 관람 데크@p,st,out,crowd","투명수로 정원@p,st,out,night","인공노을 회랑@p,st,in","발광초 온실길@p,st,out,night","향열매 유리카페@p,st,in,biz,eat,day","궤도광 테라스@p,st,out,night","빛먼지 산책교@p,st,out,night","유리돔 꽃시장@p,st,out,biz,day,crowd","항로등 거리@p,st,out,night,crowd","별비 투영실@p,st,in,night","냉삼집 거리@p,st,in,biz,eat,crowd","술집 골목@p,st,in,biz,eat,night,crowd","돔시티 오락실@p,st,in,biz","홀로그램 극장@p,st,in,biz","가상 사격 게임장@p,st,in,biz","중력 조절 스포츠룸@p,st,in,biz","음성 부스 (노래방 비슷한 곳)@p,st,in,biz,night","장비점 거리@p,st,out,biz,day","상업구역 길거리 푸드 매대@p,st,out,biz,eat,crowd","PERNOX COFFEE@p,st,in,biz,eat,early","상업구역 카페 구역@p,st,in,biz,eat","상업구역 소형 광장@p,st,out","인공호수 공원@p,st,out,day","관람언덕@p,st,out","은사막 전망대@p,st,out","휴가 사진길@p,st,out","별빛 관람열차@p,st,in,biz","저중력 수영장@p,st,in,biz,day","광물온천 스파@p,st,in,biz","흰모래 해변돔@p,st,in,biz,day","푸른기압 정원@p,st,in,day","농업돔 체험장@p,st,in,day","돔시티 식당가 행성 요리점@p,st,in,biz,eat",
+ "루비웨이 네온 골목@p,st,ruby,out,night","블루아워 바@p,st,ruby,in,biz,eat,night","미드나잇 룸@p,st,ruby,in,biz,night","퍼퓸덴 향수 가게@p,st,ruby,in,biz","다이스키스 게임 라운지@p,st,ruby,in,biz,night","실버마스크 가면 라운지@p,st,ruby,in,biz,night","블라인드 쇼룸@p,st,ruby,in,biz,night","루비웨이 테마형 숙박업소@p,st,ruby,in,biz,night",
+ "철판거리 컨테이너 상점@p,ea,out,biz","철판거리 이동식 술집@p,ea,in,biz,eat,night","철판거리 임시 라운지@p,ea,in,biz,night","잡화 트럭 앞@p,ea,out,biz,day","수리 천막@p,ea,in,biz,day","철판거리 음식 화구 앞@p,ea,out,biz,eat","임시 시장날 장터@p,ea,out,biz,day,crowd","방어선 안쪽 발광초 군락이 보이는 자리@p,ea,out,night"],
+ event:[
+ "{M:이} {F}에게 어울릴 것 같다며 간식을 사 들고 온다@p","외출 복귀 시간까지 딱 두 시간이 남는다@p","{A:이} 지구에서 먹던 음식 이야기를 꺼낸다@p","{M:이} {F}의 장갑이 헐거운 걸 보고 직접 조여준다@p","둘이 같이 있는 사진이 부대 단체 채팅에 올라온다@p","{F:이} 지구 소식을 확인하는 동안 {M:이} 옆에서 기다린다@p",
+ "인공 노을 회랑에서 노을빛 조명이 켜지는 순간을 같이 본다@p,st","중앙광장에서 소매치기가 {F}의 단말을 노린다@p,st","냉삼집에서 {M:이} {F}의 접시에 고기를 계속 올린다@p,st","오락실 가상 사격 게임에서 내기를 한다@p,st","{F:이} 예쁘다고 한 유리꽃 장식을 {M:이} 몰래 산다@p,st","장비점에서 단말 케이스에 서로 이름을 각인한다@p,st","홀로그램 극장에서 지구 방송을 늦게 상영해준다@p,st","돔 천장에 지구의 바다가 투영된다@p,st","별빛 관람열차에서 가장 좋은 자리를 차지한다@p,st","저중력 수영장에서 {F:이} 중심을 잃고 {M:이} 붙잡는다@p,st","관람언덕에서 {M:이} {F}에게 자기 외투를 걸쳐준다@p,st","향열매 빙수를 {F:이} {M}에게 한 입 내민다@p,st,hot","헌병이 외출증을 확인하겠다고 둘을 불러 세운다@p,st","항로등 거리 먹거리 매대마다 {M:이} 지갑을 연다@p,st","은사막 전망대까지 {M:이} 운전해서 데려간다@p,st",
+ "개척기념제(4월) 중앙광장 행성권 음식 부스를 같이 돈다@p,st,spring","유리꽃 박람회(3월) 온실정원에서 안전 용기 속 보호종을 구경한다@p,st,spring","보급선 장터에서 지구산 과자를 두고 줄을 선다@p,st","푸드페어(6월)에서 냉삼 꼬치를 나눠 먹는다@p,st,summer","여름 물빛제(7월) 인공수로에 띄운 빛배를 구경한다@p,st,summer","인공해변제에서 {M:이} {F:을} 물가에서 들어 올리려 한다@p,st,summer","하늘투영제(8월) 밤 돔 천장 빛 불꽃을 올려다본다@p,st,summer","항구 야시장에서 행성권 꼬치를 먹으며 걷는다@p,st","관람데크 음악회(9월) 난간에 기대 지구 옛 노래 편곡을 듣는다@p,st,autumn","네온 퍼레이드(10월) 인파에 밀리지 않게 바짝 붙어 걷는다@p,st,autumn","민군 교류일(11월) 가족 사진 부스에서 둘이 사진을 찍는다@p,st,autumn","불꽃주간(12월) 고층 외벽에 투사된 빛 불꽃을 본다@p,st,winter","유리돔 꽃시장에서 {M:이} {F:이} 손에 든 물건 가격표부터 확인한다@p,st,spring","투명수로 정원 바닥 아래로 입체영상 물고기가 지나간다@p,st","빛먼지 산책교에서 빛 입자 연출이 켜진다@p,st",
+ "블루아워 바 메뉴판의 노골적인 칵테일 이름에 {F:이} 당황한다@p,st,ruby","다이스키스에서 지는 쪽이 다음 음료를 골라주기로 내기한다@p,st,ruby","실버마스크에서 가면을 써도 {M:이} {F:을} 단번에 알아본다@p,st,ruby","퍼퓸덴에서 {F:이} 오래 맡은 향의 기록번호를 {M:이} 몰래 외운다@p,st,ruby","미드나잇 룸에 둘만 남고 {M:이} 목소리를 낮춘다@p,st,ruby","루비웨이 골목에서 아는 얼굴과 마주칠 뻔한다@p,st,ruby","블라인드 쇼룸에서 {F:이} 민망해서 시선을 피한다@p,st,ruby",
+ "철판거리 잡화 트럭에서 {F:이} 오래 본 담요를 {M:이} 계산해버린다@p,ea","이동식 술집에서 {F}에게 시선을 오래 두는 병사를 {M:이} 쫓아낸다@p,ea","임시 라운지에 둘이 들어간 게 금방 소문이 난다@p,ea","철판거리 진흙길에서 {M:이} {F}의 손목을 잡아 자기 쪽으로 끌어당긴다@p,ea","수리 천막에서 {M:이} 쓸데없다면서 보온 내피를 사 온다@p,ea","임시 시장날 매대 앞에서 둘이 흥정을 한다@p,ea","방어선 안쪽에서 푸른 발광초 군락을 멀리서 같이 본다@p,ea,!n2"]},
+daily:{place:[
+ "606기지 식당동@p,st,in,eat,crowd","생활동 휴게실@p,st,in","체력단련장@p,st,in","생활동 세탁실@p,st,in","훈련장@p,st,out,day","중앙 작전동 전술 브리핑룸@p,st,in","작전동 통신실@p,st,in","의무동 검진실@p,st,in","장비 세척실@p,st,in","무기 수령소@p,st,in","장갑차 차고@p,st,in","드론 격납고@p,st,in","보급동@p,st,in","냉장·냉동 보관고@p,st,in","정문 검문소@p,st,out","감시탑@p,st,out","소형 수송선 착륙장@p,st,out","돔시티 항구구역 하역장@p,st,out,crowd","연구구역 출입 게이트@p,st,out","돔시티 행정청 민원 창구@p,st,in,biz,day","헌병 초소 앞@p,st,out","의무동 회복실@p,st,in",
+ "폐쇄 구역 수색로@p,war,out","숨쉬는 숲 수색로@p,war,out","붕괴된 연구시설@p,war,in","버려진 채굴 터널@p,war,in","포자버섯 지대 외곽@p,war,out","돔시티 하층 관리통로@p,st,war,in","외곽 초소@p,war,out","외곽 방어선 통로@p,war,out",
+ "배식 천막@p,ea,in,eat,crowd","컨테이너 지휘소@p,ea,in","검역 천막@p,ea,in","세척 구역@p,ea,out","탄약 천막@p,ea,in","통신 천막@p,ea,in","식수 저장소@p,ea,out","발전기 구역@p,ea,out","천막 정비 차고@p,ea,in","임시 착륙장@p,ea,out","보급 야적장@p,ea,out","막영지 감시탑@p,ea,out","가설 방어선@p,ea,out","철판길@p,ea,out","임시 우편소 컨테이너@p,ea,in","기념 말뚝 구역@p,ea,out","공조 천막@p,ea,in","낮 훈련장@p,ea,out,day",
+ "붉은 황무지@p,ea,war,out","균열 지대@p,ea,war,out","붕괴 폐허@p,ea,war,out","푸른 안개 저지대@p,ea,war,out","생체파장 지대@p,ea,war,out"],
+ event:[
+ "{M:이} {F}의 식판이 비어 보인다며 자기 몫을 덜어준다@p","냉삼 특식이 나와 식당 분위기가 들뜬다@p","보급이 밀려 맛없는 영양바만 남았다@p","부대원들이 둘 사이를 두고 내기를 걸었다는 걸 알게 된다@p","{F:이} 재채기 한 번 했다고 {M:이} 장비 상태부터 확인한다@p","{M:이} {F}에게 남긴 짧은 손글씨 쪽지가 발견된다@p","통신 지연 때문에 지구와 영상편지만 주고받는다@p","{M:이} 구경하는 부대원에게 \"뭘 봐, 꺼져\" 하고 쫓아낸다@p","식당에서 둘이 같은 테이블에 앉는 걸 모두가 못 본 척한다@p","야식 자판기 앞에서 마주친다@p","부대 체육 경기 내기에서 둘이 같은 조가 된다@p",
+ "{F:이} 오전 브리핑에서 보고를 맡는다@p,of","{F:이} 근무표를 짜다가 {M}의 이름 옆에서 손이 멈춘다@p,nc","{F:이} 신병 교육을 맡았는데 {M:이} 구경하러 온다@p,nc","{F:이} 침상 정리 불량으로 점호에서 지적받는다@p,pv","{F:이} 야간 순찰 근무에 걸린다@p,pv","{F:이} 민간인 출입증을 깜빡해 검문소에서 막힌다@p,cv","{F:이} 연구원 자격으로 기지에 샘플을 받으러 온다@p,cv","민군 교류 업무로 {F:이} 기지를 방문한다@p,cv",
+ "의무동 반기 신체검사(3월·9월) 결과지를 {M:이} 기웃거린다@p,st","전투복 피팅데이에 {M:이} {F}의 하네스를 직접 조여준다@p,st","606 체육대회(5월)에서 {M:이} 갑자기 승부욕을 낸다@p,st,spring","안정구역 야유회(6월)에서 {M:이} 자연스럽게 {F} 옆자리를 차지한다@p,st,summer","창설기념제(8월) 단체사진에서 둘이 나란히 선다@p,st,summer","여름 물총전에서 {M:이} 일부러 요란하게 군다@p,st,summer","부대문화제(9월) 장기자랑 무대에 누가 나갈지 정한다@p,st,autumn","합동사열제(11월) 정복 차림의 {F:을} {M:이} 한참 본다@p,st,autumn","송년 장기자랑(12월) 무대에 {M:이} 끌려 나간다@p,st,winter","드론운동회(1월) 조종대회에서 내기를 한다@p,st,winter","정비축제에서 {M:이} {F}의 장비를 직접 고쳐준다@p,st","생활관 리그(7월)에서 {F}의 생활관이 지자 {M:이} 재경기를 우긴다@p,st,summer","귀환자 환송일에 지구행 수송선이 떠나는 걸 본다@p,st","실종자 기록일(11월)에 {M:이} 평소보다 말이 없다@p,st,autumn","구역 반환식에서 민간인들이 들뜬 얼굴로 옛 전투지를 구경한다@p,st","항로 폐쇄 대기로 지구산 간식 재고가 바닥난다@p,st","보급선 도착일 항구 경계 지원에 둘이 같이 나간다@p,st","작전동 통신실에서 {F}에게 온 영상편지를 {M:이} 신경 쓴다@p,st","제4행성 고단백 젤리로 신병 신고식이 열린다@p,st",
+ "폐쇄 구역 정기 수색에 둘이 같은 조로 편성된다@p,war","잠복형 개체가 바위 틈에서 움직인다@p,war","군집형 개체가 이동 방향을 바꿔 차단선 쪽으로 온다@p,war","의태신호가 구조 요청처럼 들려 팀 단위로 확인하러 간다@p,war","포자버섯 지대를 지나다 {A}의 마스크가 느슨해진다@p,war","작전 복귀 후 감염 스캔과 장비 세척을 받는다@p,war","{A:이} 수색 중 긁힌 상처를 숨기려다 들킨다@p,war","하층 통로 암시장 단속에 투입된다@p,st,war",
+ "{M:이} 배식 천막에서 {F}의 식판에 국물과 고기부터 밀어 넣는다@p,ea","식수 배급 줄에서 {M:이} {F}의 물통을 먼저 확인한다@p,ea","천막 줄을 다시 묶다가 둘이 손이 겹친다@p,ea","임시 우편소에 {F} 앞으로 편지가 도착한다@p,ea","먼지폭풍 뒤 방어선 보수 작업에 같이 나간다@p,ea","정착 작업일에 {M:이} 무거운 자재를 {F}에게서 빼앗는다@p,ea","막영지 체육일 장비결속 경기에서 둘이 한 조가 된다@p,ea","방호복 릴레이에서 {M:이} {F}의 지퍼와 필터를 맞춰준다@p,ea","부상자 운반 경기에서 {F:이} 부상자 역할을 맡는다@p,ea","첫 착륙일 특식이 배식 천막에 나온다@p,ea","기념 말뚝 구역에 새 이름표가 걸린다@p,ea","보급선 도착일 지구산 간식 상자가 풀린다@p,ea","천막 샤워장 온수가 금방 식어버린다@p,ea","방어선 돌파일이라 초소 근무자가 평소보다 예민하다@p,ea",
+ "야간 침입 경보에 모두 잠에서 깨 무기를 찾는다@p,ea,war","보급차가 착륙장 가는 길에서 습격받는다@p,ea,war","정찰조 연락두절로 수색팀이 바로 장비를 챙긴다@p,ea,war","포자 구름이 밀려와 일부 천막이 닫힌다@p,ea,war","균열 지대에서 지반이 꺼진다@p,ea,war","야행성 추적체가 초소 근처까지 다가온다@p,ea,war","소규모 교전 뒤 인원 확인을 한다@p,ea,war"]},
+trip:{place:[
+ "제4 광물박물관@p,st,in,biz,day","제4 레일투어 투명 객실@p,st,in,biz,day","제4 광물온천@p,st,in,biz","제4 광물등축제 거리@p,st,out,night","제4 광물꽃 정원@p,st,in,biz,day","제4 빛터널 역 플랫폼@p,st,in,day","제6 얼음해변@p,st,out,cold","제6 냉훈제거리@p,st,out,biz,eat","제6 오로라 관측 돔@p,st,in,night","제6 얼음유리 정원@p,st,in,biz,day","제6 흰밤 산책로@p,st,out,night","제3 해양돔거리@p,st,out,crowd","무중력 호텔 객실@p,st,in","궤도정거장 항성라운지@p,st,in,biz","궤도온실 정원@p,st,in","행성간 크루즈 전망창 앞@p,st,in","별빛 라운지 (중계정거장)@p,st,in","푸른돔 리조트@p,st,in,biz","안정구역 캠핑장 투명 돔 텐트@p,st,out","안정도로 전망대@p,st,out",
+ "착륙장 수송선 대기 컨테이너@p,ea,in","보급선 호위 차량 안@p,ea,in","궤도 중계 수송선 좌석@p,ea,in"],
+ event:[
+ "점프관문 항법 교란으로 일정이 하루 밀린다@p","출발 전 감염 검사와 생체파장 스캔을 받는다@p","{A:이} 짐 검역에서 걸린다@p","{M:이} 휴가 일정을 제멋대로 하루 늘린다@p,st","제4 레일투어 좁은 좌석에서 {F:이} 기대자 {M:이} 팔을 둘러 자리를 넓힌다@p,st","제4 광물등축제(10월) 광물빛이 천천히 색을 바꾼다@p,st,autumn","제6 얼음해변에서 {M:이} {F}의 장갑과 목도리부터 확인한다@p,st,winter","제6 오로라 관측 돔에서 {M:이} {F:을} 품 안쪽으로 끌어당긴다@p,st,winter","제6 냉훈제거리에서 {M:이} 차가운 밥은 밥이 아니라고 투덜댄다@p,st","제3 해양돔거리 수상 택시를 탄다@p,st,summer","무중력 호텔에서 {F:이} 떠밀리지 않게 {M:이} 붙잡는다@p,st","궤도정거장 라운지에서 늦게 도착한 지구 방송을 본다@p,st","행성간 크루즈 별빛 관람 시간에 둘이 창가에 선다@p,st","푸른돔 리조트 룸서비스 단말로 야식을 시킨다@p,st","안정구역 캠핑장 텐트가 좁다며 {M:이} 바짝 붙는다@p,st","제4 광물꽃 정원에서 {M:이} 설명문을 읽는 척 옆에 선다@p,st","광물온천 피로 회복 캡슐을 {M:이} 억지로 예약한다@p,st,winter",
+ "수송선이 먼지폭풍 때문에 늦게 내려온다@p,ea","보급선 호위 중 {M:이} {F}의 좌석과 하차 동선을 먼저 정한다@p,ea","착륙장 모래바람과 엔진 열이 막영지를 덮친다@p,ea"]},
+home:{place:[
+ "장교 숙소 (원룸형 군용 레지던스)@p,st,in","병사 생활관 4인실@p,st,in","생활관 휴게 공간@p,st,in","생활관 공용 세탁실@p,st,in","장교 숙소구역 복도@p,st,in","푸른돔 리조트 객실@p,st,in","돔시티 주거블록 아파트@p,st,in","무중력 호텔 객실@p,st,in",
+ "수색팀장 단독막사@p,ea,in","장교 막사구역 천막@p,ea,in","병사 천막 막사@p,ea,in","천막 샤워장 앞@p,ea,out","폭풍 대피 컨테이너@p,ea,in"],
+ event:[
+ "{F:이} {M}의 숙소에 자연스럽게 들어온다@p","{M}의 비상 호출 패널이 울릴까 봐 둘 다 신경 쓴다@p","{M:이} 피곤해 보이는 {F}에게 먹을 것부터 쥐여준다@p","답장이 늦자 {M:이} 바로 무전으로 {F:을} 찾는다@p","{M:이} {F}에게 남길 쪽지를 종이에 쓴다@p","{F:이} {M}의 상처를 직접 소독해준다@p",
+ "장교 숙소 미니 냉장고에 {F}가 좋아하는 간식이 채워져 있다@p,st","밝기 조절 조명을 낮추고 같이 쉰다@p,st","야간 음소거 시간이라 낮은 목소리로만 말해야 한다@p,st","생활관 동기들이 {F}의 단말을 훔쳐보려 한다@p,st,pv","주거블록 복도에서 이웃 군인가족과 마주친다@p,st","{M:이} 숙소 작전 단말로 보고서를 쓰다가 {F:을} 돌아본다@p,st",
+ "{M:이} {F:을} 바람 덜 드는 침상 안쪽으로 밀어 넣는다@p,ea","얇은 방수천 너머로 말소리가 다 새어 나간다@p,ea","정전된 밤 예비등 아래에서 {M:이} {F}의 손목을 잡아 위치를 확인한다@p,ea","폭풍 대피 컨테이너에서 둘이 좁게 붙어 앉는다@p,ea","천막 샤워장 입구를 {M:이} 지키듯 서 있는다@p,ea","소형 난방기 하나로 둘이 버틴다@p,ea,cold","폭풍 대피 중 사이렌이 울린다@p,ea,war"]}
+}};
+['time','weather','prop','twist'].forEach(k=>RAW[k].push(...PX[k]));
+for(const c in PX.cats){RAW.cats[c].place.push(...PX.cats[c].place);RAW.cats[c].event.push(...PX.cats[c].event)}
+
+// 코스 — p 돔시티 외출 · pb 기지 안 · pe 철판거리 외출(초기) · pbe 막영지 안(초기)
+COURSE.p={slots:["meal1","act","rest","meal2","night"],
+ meal1:["PERNOX COFFEE 브런치","향열매 유리카페 브런치","돔시티 국밥집","분식집","상업구역 길거리 푸드 매대@w","카페 구역 샌드위치"],
+ act:["홀로그램 극장 관람","오락실 가상 사격 게임 내기","중력 조절 스포츠룸","장비점 거리 구경@w","유리돔 꽃시장 구경@w","저중력 수영장","흰모래 해변돔","별빛 관람열차","인공호수 공원 피크닉@w","휴가 사진길 산책@w","농업돔 체험장","은사막 전망대 드라이브@drive","안정도로 드라이브@drive","광물온천 스파","별비 투영실 특별 투영","중앙광장 관람 데크","보급선 장터 쇼핑@w"],
+ rest:["향열매 유리카페","푸른기압 정원 벤치","PERNOX COFFEE","관람언덕 벤치","상업구역 소형 광장 벤치"],
+ meal2:["냉삼집 거리 단골 가게","페르녹스 향신료 구이점","제6행성 얼음 생선 요리점","제4행성 단백질 젤리 바","지구식 김치찌개집","항로등 거리 먹거리 매대@w"],
+ night:["궤도광 테라스 야경","투명수로 정원 야간 조명@w","빛먼지 산책교@w","술집 골목","인공노을 회랑","발광초 온실길@w","음성 부스에서 노래","중앙광장 별빛 투영 아래 산책@w","블루아워 바@ruby","미드나잇 룸@ruby","다이스키스 게임 라운지@ruby","실버마스크 가면 라운지@ruby"],
+ stay:["푸른돔 리조트 체크인","돔시티 주거블록 숙소","루비웨이 테마형 숙박업소@ruby"],end:"귀대 · 정문 검문소 복귀 검사"};
+COURSE.pb={slots:["meal1","act","rest","meal2","night"],
+ meal1:["식당동 점심 배식","식당동 냉삼 특식","보온 도시락 들고 휴게실"],
+ act:["체력단련장 같이 운동","훈련장 사격 훈련","드론 격납고 정비","장비 손질","생활동 세탁실","휴게실 게임 내기","무기 수령소 장비 점검","보급선 도착 하역 지원","의무동 검진"],
+ rest:["휴게실 소파","야식 자판기 앞","장교 숙소에서 휴식","생활동 옥상 쪽 통로"],
+ meal2:["식당동 저녁 배식","식당동 작전복귀식","휴게실 컵라면 야식"],
+ night:["저녁 개인정비 시간","장교 숙소에서 같이 쉬기","야간 순찰 동행","휴게실 늦은 지구 방송","감시탑 아래 순찰로 산책"],
+ stay:["장교 숙소","병사 생활관"],end:"소등 · 취침"};
+COURSE.pe={slots:["meal1","act","rest","meal2","night"],
+ meal1:["배식 천막 점심","철판거리 음식 화구","잡화 트럭 지구산 과자"],
+ act:["철판거리 컨테이너 상점 구경@w","수리 천막에서 장갑 고르기","잡화 트럭 구경","임시 시장날 장터@w","임시 우편소 우편물 확인"],
+ rest:["임시 라운지 중고 소파","잡화 트럭 옆 간이 의자","철판길 끝 벤치"],
+ meal2:["배식 천막 저녁","철판거리 음식 화구 고기 꼬치","이동식 술집 안주"],
+ night:["이동식 술집","임시 라운지","방어선 안쪽에서 발광초 군락 보기","철판거리 밤길 산책@w"],
+ stay:["수색팀장 단독막사","병사 천막 막사"],end:"막영지 복귀 · 저녁 점호"};
+COURSE.pbe={slots:["meal1","act","rest","meal2","night"],
+ meal1:["배식 천막 점심","전투식량 팩","보온 도시락"],
+ act:["낮 훈련 (포복·엄폐 이동)","방어선 보수","천막 줄 다시 묶기","정착 작업일 배수로 파기","장비 세척","탄약 수량 맞추기","보급 야적장 분류","막영지 체육일 경기"],
+ rest:["공조 천막","식수 배급 줄","발전기 구역 그늘"],
+ meal2:["배식 천막 저녁","냉동 고기 특식","전투 후 회복식"],
+ night:["저녁 점호","불침번 동행","단독막사에서 같이 쉬기","야전 야식 컵라면"],
+ stay:["수색팀장 단독막사","병사 천막 막사"],end:"취침 · 불침번 교대"};
+
+// 페르녹스 여행지 — pd: kr 페르녹스 근교 · abroad 행성 여행 (안정기에만)
+CITIES.push(
+{n:"안정구역 호수권",p:1,pd:"kr",dep:"군용 안정도로로 출발",meal:"인공호수 매점 샌드위치|농업돔 식당 신메뉴 시식",act:"인공호수 공원 피크닉@w|농업돔 수확 체험|관람언덕 전망@drive|휴가 사진길 산책@w|안정도로 드라이브@drive",rest:"호숫가 피크닉 데크|관람언덕 자판기 벤치",din:"캠핑장 간이 조리대 바비큐|농업돔 향열매 디저트",night:"캠핑장 별빛 투영 램프 아래|호숫가 산책@w",stay:"안정구역 캠핑장 투명 돔 텐트|푸른돔 리조트"},
+{n:"은사막 방면",p:1,pd:"kr",dep:"돔시티 서문에서 안정도로로 출발",meal:"서문 휴게소 커피|전투식량 피크닉",act:"은사막 전망대@drive|안전 경계선 따라 드라이브@drive|은빛 모래 지형 사진@w",rest:"전망대 차 안|전망대 자판기 벤치",din:"서문 근처 행성 요리점|차에서 보온 도시락",night:"새벽 은사막 일출 대기@drive|돌아오는 길 야간 드라이브@drive",stay:"서문 근처 숙소|푸른돔 리조트"},
+{n:"제4행성",p:1,pd:"abroad",meal:"채굴도시 노동자 식당|광물염 스튜",act:"제4 광물박물관|제4 레일투어|제4 광물꽃 정원|제4 빛터널 역|광물 공예 장터 구경@w",rest:"광물온천 족욕|레일 역 카페",din:"제4행성 고단백 가공식 코스|노동자 식당 광물염 구이",night:"제4 광물등축제 거리@w|광물온천 저압 사우나",stay:"광물온천 숙소|채굴도시 관광 호텔"},
+{n:"제6행성",p:1,pd:"abroad",meal:"관측기지 카페 발열 음료|냉훈제 생선 아침",act:"제6 얼음해변 산책@w|제6 얼음유리 정원|관측기지 기념품점|방한복 빌려 얼음 평원 산책@w",rest:"얼음유리 정원 온열 벤치|따뜻한 음료 바",din:"제6 냉훈제거리|얼음 숙성 고기|광물염 스튜",night:"제6 오로라 관측 돔|제6 흰밤 산책로@w",stay:"관측기지 숙소|얼음권 호텔"},
+{n:"제3행성 해양돔",p:1,pd:"abroad",meal:"부유식 상점가 해산물 브런치|냉음료 매대",act:"제3 해양돔거리 구경@w|수상 택시|해양돔 바다빛 아래 산책@w|기념품점",rest:"해양돔 카페|부유 상점가 벤치",din:"해산물 요리점|수상 레스토랑",night:"수면 위 조명 산책@w|해양돔 바",stay:"해양돔 호텔|부유식 숙소"},
+{n:"궤도정거장",p:1,pd:"abroad",dep:"돔시티 항구구역에서 궤도 셔틀 탑승",meal:"정거장 라운지 조식|환승객 식당",act:"궤도온실 정원|항성라운지 전망창|행성간 크루즈 짧은 운항|메시지 전송 부스에서 지구로 연락",rest:"항성라운지 따뜻한 음료|별빛 라운지",din:"정거장 레스토랑|크루즈 식당",night:"전망창 앞 항로 불빛 구경|낮은 중력 모드 객실",stay:"무중력 호텔|정거장 환승 호텔"});
+
 /* ---------- 파싱 ---------- */
-const ERAS=['m','n','g','j','f','s','w'];const INH={s:['m']};
+const ERAS=['m','n','g','j','f','s','w','p'];const INH={s:['m']};
 function P(s){const i=s.lastIndexOf('@');if(i<0)return{t:s,tags:new Set(),need:[]};
   const tg=s.slice(i+1).split(','),tags=new Set(),need=[];tg.forEach(x=>x[0]==='!'?need.push(x.slice(1)):tags.add(x));return{t:s.slice(0,i),tags,need}}
 const D={};['time','weather','prop','point','twist'].forEach(k=>D[k]=RAW[k].map(P));
 D.cats={};for(const c in RAW.cats)D.cats[c]={label:RAW.cats[c].label,place:RAW.cats[c].place.map(x=>({...P(x),cat:c})),event:RAW.cats[c].event.map(x=>({...P(x),cat:c}))};
 D.time.forEach(it=>{if(it.tags.has('j'))it.tags.add('w')});D.weather.forEach(it=>{if(it.tags.has('j')){it.tags.add('w');it.tags.add('f')}});
-const CO={};for(const e in COURSE){CO[e]={slots:COURSE[e].slots,times:COURSE[e].times,end:COURSE[e].end};['meal1','act','rest','meal2','night','stay'].forEach(k=>CO[e][k]=COURSE[e][k].map(P))}
+const CO={};for(const e in COURSE){CO[e]={slots:COURSE[e].slots,times:COURSE[e].times,end:COURSE[e].end};['meal1','act','rest','meal2','night','stay'].forEach(k=>CO[e][k]=COURSE[e][k].map(P));if(e[0]==='p')['meal1','act','rest','meal2','night','stay'].forEach(k=>CO[e][k].forEach(x=>x.tags.add('p')))}
+D.point.forEach(it=>it.gen=true);
 
 
 /* 호텔은 사는 형편과 상관없이 다 나오게 (시대만 따짐) */
@@ -671,10 +779,13 @@ const rnd=a=>a[Math.floor(Math.random()*a.length)];
 const store={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 
 let era=store.get('ev_era','m'),cls=store.get('ev_cls','r');
+let ph=store.get('ev_ph','st'),pmode=store.get('ev_pmode','peace'),ruby=store.get('ev_ruby','0')==='1',prank=store.get('ev_prank','pv');
 $('#nM').value=store.get('ev_nM','');$('#nF').value=store.get('ev_nF','');
 
-function eraOK(it){const has=ERAS.some(e=>it.tags.has(e));return!has||it.tags.has(era)||(INH[era]||[]).some(e=>it.tags.has(e))}
-function clsOK(it){const t=it.tags;if(t.has('top'))return cls==='top';if(t.has('low'))return cls==='low';if(t.has('r'))return cls==='r'||cls==='top';if(t.has('c'))return cls==='c'||cls==='low';return true}
+function eraOK(it){if(era==='p')return(it.tags.has('p')||!!it.gen)&&pOK(it);const has=ERAS.some(e=>it.tags.has(e));return!has||it.tags.has(era)||(INH[era]||[]).some(e=>it.tags.has(e))}
+function pOK(it){const t=it.tags;if(t.has('st')&&ph!=='st')return false;if(t.has('ea')&&ph!=='ea')return false;if(t.has('war')&&pmode!=='war')return false;if(t.has('ruby')&&!(ruby&&ph==='st'))return false;return true}
+const P_KEYS=['of','nc','pv','cv'],P_LABEL=['장교','부사관','병사','민간인'];
+function clsOK(it){const t=it.tags;if(era==='p'){const rk=P_KEYS.filter(k=>t.has(k));return!rk.length||rk.includes(prank)}if(t.has('top'))return cls==='top';if(t.has('low'))return cls==='low';if(t.has('r'))return cls==='r'||cls==='top';if(t.has('c'))return cls==='c'||cls==='low';return true}
 const CLS_KEYS=['top','r','o','c','low'];
 const CLS_LABEL={m:['재벌 총수 일가','부유층','보통','서민','노장'],s:['재벌 총수 일가','부유층','보통','서민','노장'],n:['재벌가','부잣집','보통','서민','달동네·판자촌'],g:['대부호 가문','유지·부잣집','보통','서민','막노동·행랑살이'],j:['왕실','양반 대감댁','중인','평민','노비·천민'],f:['황족','공작·대귀족','하급·몰락 귀족','평민','하녀·고아·빈민'],w:['황실·무림맹주가','명문 세가','문파 제자','평민','낭인·거지']};
 function baseOK(it){return eraOK(it)&&clsOK(it)}
@@ -721,7 +832,7 @@ function cityPlaces(n){const key=n+'|'+era+'|'+(['trip','all'].includes(cat)?1:0
   ['meal','act','rest','din','night','stay'].forEach(k=>c[k].forEach(x=>{if(k==='stay'&&!['trip','all'].includes(cat))return;const tg=spotTags(x.t,k);x.tags.forEach(t=>tg.add(t));if(c.a)tg.add('abroad');out.push({t:x.t.includes(c.n)?x.t:`${c.n} · ${x.t}`,tags:tg,need:[],cat:'trip'})}));
   return CP[key]=out}
 function fillRegion(){const sel=$('#region');
-  const nr=CI.filter(c=>c.near),kr=CI.filter(c=>!c.a&&!c.near),ab=CI.filter(c=>c.a),og=(l,a)=>`<optgroup label="${l}">`+a.map(c=>`<option>${c.n}</option>`).join('')+'</optgroup>';
+  const nr=CI.filter(c=>c.near),kr=CI.filter(c=>!c.a&&!c.near&&!c.p),ab=CI.filter(c=>c.a),og=(l,a)=>`<optgroup label="${l}">`+a.map(c=>`<option>${c.n}</option>`).join('')+'</optgroup>';
   sel.innerHTML='<option value="">전체 랜덤</option><optgroup label="서울"><option>서울</option></optgroup>'+og('서울 근교',nr)+og('국내',kr)+og('해외',ab);
   sel.value=(region==='서울'||CI.some(c=>c.n===region))?region:'';region=sel.value;syncRegion()}
 function syncRegion(){$('#regionRow').style.display=regionOK()?'':'none';
@@ -760,6 +871,7 @@ function poolOf(k){const all=k==='place'?places():k==='event'?events():D[k];retu
 function roll(k){
   const all=poolOf(k);let list=all.filter(it=>valid(k,it));
   if(!list.length)list=all.filter(baseOK);if(!list.length)list=all;
+  if(era==='p'&&pmode==='war'&&['place','event','twist'].includes(k)){const w=list.filter(it=>it.tags.has('war'));if(w.length&&Math.random()<(k==='place'?.45:.6))list=w}
   cur[k]={it:rnd(list),ab:Math.random()<.5};
 }
 function fixChain(from){ // 앞 항목이 바뀌면 뒤에 안 맞게 된 항목을 다시 뽑음
@@ -809,7 +921,7 @@ function evText(){
 }
 
 /* ---------- 코스 모드 ---------- */
-const CI=CITIES.map(c=>{const o={n:c.n,a:c.a,dep:c.dep,near:c.near};['meal','act','rest','din','night','stay'].forEach(k=>o[k]=c[k].split('|').map(P));return o});
+const CI=CITIES.map(c=>{const o={n:c.n,a:c.a,dep:c.dep,near:c.near,p:c.p,pd:c.pd};['meal','act','rest','din','night','stay'].forEach(k=>{o[k]=c[k].split('|').map(P);if(c.p)o[k].forEach(x=>x.tags.add('p'))});return o});
 const FI={};for(const k in FILL)FI[k]=FILL[k].split('|').map(P);
 CI.forEach(c=>c.stay.forEach(freeAll));FI.stay.forEach(freeAll);
 /* 드라이브로 갈 만한 곳 자동 표시 */
@@ -818,13 +930,13 @@ const tagDrive=x=>{if(DRIVE_RE.test(x.t)&&!x.tags.has('w'))x.tags.add('drive')};
 for(const e in CO)['act','rest','night'].forEach(k=>CO[e][k].forEach(tagDrive));CI.forEach(c=>['act','rest','night'].forEach(k=>c[k].forEach(tagDrive)));FI.act.forEach(tagDrive);FI.rest.forEach(tagDrive);FI.night.forEach(tagDrive);
 
 let slots=[],tripCity=null;
-function hasDest(){return['m','n','s'].includes(era)}
+function hasDest(){return['m','n','s','p'].includes(era)}
 function opt(){return{len:+document.querySelector('input[name=len]:checked').value,
   dest:hasDest()?document.querySelector('input[name=dest]:checked').value:'local',
   city:$('#city').value,low:$('#lowWalk').checked,drive:driveOK()&&$('#drive').checked,twn:document.querySelector('input[name=twn]:checked').value}}
-function driveOK(){return['m','n','s','f'].includes(era)}
-function cKey(){return era==='s'?'m':era}
-function okC(x){const o=opt();return eraOK(x)&&!((o.low||o.drive)&&x.tags.has('w'))} // 코스 장소는 시대만 따짐
+function driveOK(){return['m','n','s','f'].includes(era)||(era==='p'&&ph==='st')}
+function cKey(){if(era==='p'){const d=hasDest()?(document.querySelector('input[name=dest]:checked')||{}).value:'local';return(ph==='ea'?'p':'p')+(d==='near'?'b':'')+(ph==='ea'?'e':'')}return era==='s'?'m':era}
+function okC(x){const o=opt();return eraOK(x)&&(era!=='p'||pOK(x))&&!((o.low||o.drive)&&x.tags.has('w'))} // 코스 장소는 시대만 따짐
 const CMAP={meal1:'meal',meal2:'din',act:'act',rest:'rest',night:'night',stay:'stay'};
 function pickC(type,used,city){
   let pools;
@@ -835,10 +947,11 @@ function pickC(type,used,city){
   const any=pools.flat().filter(okC);return rnd(any.length?any:pools.flat()).t;
 }
 const hm=(h,m)=>String(h).padStart(2,'0')+':'+(m?'30':'00');
-function cityList(dest){return CI.filter(c=>dest==='abroad'?c.a:dest==='near'?c.near:(!c.a&&!c.near))}
+function cityList(dest){if(era==='p')return CI.filter(c=>c.p&&c.pd===dest);return CI.filter(c=>!c.p&&(dest==='abroad'?c.a:dest==='near'?c.near:(!c.a&&!c.near)))}
+const isLocal=d=>d==='local'||(era==='p'&&d==='near');
 function plan(){
   const o=opt(),D=o.len,p=[];
-  if(o.dest==='local'){
+  if(isLocal(o.dest)){
     const E=CO[cKey()],W=!!E.times;tripCity=null;
     for(let d=0;d<D;d++){
       let H,S=E.slots;
@@ -857,11 +970,11 @@ function plan(){
   // 여행 (국내·해외)
   const list=cityList(o.dest);tripCity=list.find(c=>c.n===o.city)||rnd(list);const c=tripCity;
   const air=era==='n'?'김포공항':'인천공항';
-  const dep=o.dest==='abroad'?`${air} 출국 → ${c.n}`:(c.dep||(c.n==='제주'?'김포공항에서 제주행 비행기':`${c.n}${josa(c.n,'으로')} 출발`));
+  const dep=era==='p'?(c.dep||`궤도정거장에서 ${c.n}행 여객선 탑승`):o.dest==='abroad'?`${air} 출국 → ${c.n}`:(c.dep||(c.n==='제주'?'김포공항에서 제주행 비행기':`${c.n}${josa(c.n,'으로')} 출발`));
   if(D===1){
     p.push({day:0,type:'dep',lab:'08:00',fixed:dep});
     [['meal1',12,0],['act',14,0],['rest',16,0],['meal2',18,1]].forEach(([t,h,m])=>p.push({day:0,type:t,lab:hm(h,m)}));
-    p.push({day:0,type:'end',lab:'21:00',fixed:o.dest==='near'?'서울로 돌아가기':'집으로 출발'});return p;
+    p.push({day:0,type:'end',lab:'21:00',fixed:era==='p'?'606기지 귀대':o.dest==='near'?'서울로 돌아가기':'집으로 출발'});return p;
   }
   for(let d=0;d<D;d++){
     if(d===0){
@@ -872,7 +985,7 @@ function plan(){
       [['meal1',10,0],['act',12,0],[Math.random()<.5?'rest':'act',15,0],['meal2',18,1],['night',21,0]].forEach(([t,h,m])=>p.push({day:d,type:t,lab:hm(h,m)}));
     }else{
       [['meal1',10,0],['act',12,0]].forEach(([t,h,m])=>p.push({day:d,type:t,lab:hm(h,m)}));
-      p.push({day:d,type:'end',lab:'15:00',fixed:o.dest==='abroad'?'공항으로 이동 · 귀국':(o.dest==='near'?'서울로 돌아가기':'집으로 출발')});
+      p.push({day:d,type:'end',lab:'15:00',fixed:era==='p'?(o.dest==='abroad'?'궤도정거장 경유 · 페르녹스 귀환':'606기지 귀대'):o.dest==='abroad'?'공항으로 이동 · 귀국':(o.dest==='near'?'서울로 돌아가기':'집으로 출발')});
     }
   }
   return p;
@@ -916,26 +1029,40 @@ function coText(){
 }
 function fillCity(){
   const o=opt();const sel=$('#city');const prev=sel.value;
-  sel.innerHTML='<option value="">도시 랜덤</option>'+(o.dest==='local'?'':cityList(o.dest).map(c=>`<option>${c.n}</option>`).join(''));
+  sel.innerHTML='<option value="">'+(era==='p'?'행선지 랜덤':'도시 랜덤')+'</option>'+(isLocal(o.dest)?'':cityList(o.dest).map(c=>`<option>${c.n}</option>`).join(''));
   sel.value=[...sel.options].some(x=>x.value===prev)?prev:'';
-  sel.style.display=o.dest==='local'?'none':'';
+  sel.style.display=isLocal(o.dest)?'none':'';
   const one=document.querySelector('input[name=len][value="1"]');
   one.disabled=o.dest==='abroad';one.parentElement.style.opacity=o.dest==='abroad'?.35:1;
   if(o.dest==='abroad'&&one.checked)document.querySelector('input[name=len][value="3"]').checked=true;
 }
-function syncCourseUI(){$('#destRow').style.display=hasDest()?'':'none';$('#driveLab').style.display=driveOK()?'':'none';fillCity()}
+const DEST_LAB={m:['서울 데이트','서울 근교','국내 여행','해외 여행'],p:['돔시티 외출','기지 안','페르녹스 근교','행성 여행'],pe:['철판거리 외출','막영지 안','','']};
+function syncDest(){const L=era==='p'?(ph==='ea'?DEST_LAB.pe:DEST_LAB.p):DEST_LAB.m;
+  document.querySelectorAll('input[name=dest]').forEach((x,i)=>{const lab=x.parentElement;lab.lastChild.textContent=' '+L[i];lab.style.display=L[i]?'':'none'});
+  const ck=document.querySelector('input[name=dest]:checked');if(ck&&ck.parentElement.style.display==='none')document.querySelector('input[name=dest][value=local]').checked=true}
+function syncCourseUI(){syncDest();$('#destRow').style.display=hasDest()?'':'none';$('#driveLab').style.display=driveOK()?'':'none';fillCity()}
 document.querySelectorAll('input[name=len],input[name=twn],#lowWalk,#drive,#city').forEach(x=>x.onchange=rollCourse);
 document.querySelectorAll('input[name=dest]').forEach(x=>x.onchange=()=>{fillCity();rollCourse()});
 $('#rollCourse').onclick=rollCourse;
 
 /* ---------- 공통 ---------- */
 function setSeg(id,val){document.querySelectorAll(id+' .tab').forEach(b=>b.classList.toggle('on',b.dataset.v===val))}
-function renderCls(){const box=$('#clsTabs');box.innerHTML='';
+function renderCls(){const box=$('#clsTabs');box.innerHTML='';$('#clsH').textContent=era==='p'?'여주 계급·신분':'사는 형편';
+  if(era==='p'){P_KEYS.forEach((k,i)=>{const b=document.createElement('button');b.className='tab'+(k===prank?' on':'');b.dataset.v=k;b.textContent=P_LABEL[i];
+    b.onclick=()=>{prank=k;store.set('ev_prank',prank);setSeg('#clsTabs',prank);FIELDS.forEach(([f])=>{if(!locks[f])roll(f)});fixChain();renderEv();rollCourse()};box.appendChild(b)});return}
   CLS_KEYS.forEach((k,i)=>{const b=document.createElement('button');b.className='tab'+(k===cls?' on':'');b.dataset.v=k;b.textContent=CLS_LABEL[era][i];
     b.onclick=()=>{cls=k;store.set('ev_cls',cls);setSeg('#clsTabs',cls);FIELDS.forEach(([f])=>{if(!locks[f])roll(f)});fixChain();renderEv();rollCourse()};box.appendChild(b)})}
 if(!ERAS.includes(era))era='m';if(!CLS_KEYS.includes(cls))cls='r';
 setSeg('#eraTabs',era);renderCls();
-document.querySelectorAll('#eraTabs .tab').forEach(b=>b.onclick=()=>{era=b.dataset.v;store.set('ev_era',era);setSeg('#eraTabs',era);renderCls();
+function syncP(){$('#pRow').style.display=era==='p'?'':'none';setSeg('#phTabs',ph);setSeg('#pmTabs',pmode);$('#ruby').checked=ruby;$('#rubyLab').style.display=ph==='st'?'':'none';
+  $('#pHint').textContent=pmode==='war'?'전투 모드: 경보·수색·교전 같은 사건이 섞여 나와요':'평화 모드: 습격이나 출동 없이 부대 생활·외출·행사만 나와요';
+  const ht=document.querySelector('#catTabs [data-cat=home]');if(ht)ht.textContent=era==='p'?'숙소 안':'집 안'}
+function pReroll(){syncP();FIELDS.forEach(([k])=>{if(!locks[k])roll(k)});fixChain();renderEv();syncCourseUI();rollCourse()}
+document.querySelectorAll('#phTabs .tab').forEach(b=>b.onclick=()=>{ph=b.dataset.v;store.set('ev_ph',ph);pReroll()});
+document.querySelectorAll('#pmTabs .tab').forEach(b=>b.onclick=()=>{pmode=b.dataset.v;store.set('ev_pmode',pmode);pReroll()});
+$('#ruby').onchange=e=>{ruby=e.target.checked;store.set('ev_ruby',ruby?'1':'0');pReroll()};
+if(!['st','ea'].includes(ph))ph='st';if(!['peace','war'].includes(pmode))pmode='peace';if(!P_KEYS.includes(prank))prank='pv';syncP();
+document.querySelectorAll('#eraTabs .tab').forEach(b=>b.onclick=()=>{era=b.dataset.v;store.set('ev_era',era);setSeg('#eraTabs',era);renderCls();syncP();
   syncRegion();FIELDS.forEach(([k])=>{if(!locks[k])roll(k)});fixChain();renderEv();syncCourseUI();rollCourse()});
 document.querySelectorAll('#catTabs .tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#catTabs .tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');
@@ -999,7 +1126,7 @@ if(PARENT||/embed=1/.test(location.search)){
   const coLabel=()=>{const trip=slots.length&&slots[slots.length-1].day>0;coBtn.querySelector('.st1').textContent=trip?'▶ 이 일정으로 여행 떠나기':'▶ 이 코스로 데이트 가기'};
   const _renderCo=renderCo;renderCo=function(){_renderCo.apply(this,arguments);coLabel()};
   $('#copyEv').textContent='복사만 하기';$('#copyCo').textContent='복사만 하기';
-  const setSum=()=>{const e={m:'현대',n:'90년대',g:'경성',j:'조선',f:'로판',s:'센티넬버스',w:'무협'}[era];const c=CLS_LABEL[era][CLS_KEYS.indexOf(cls)];const nm=names();const rg=regionOK()&&region?' / '+region:'';$('#setSum').textContent=`${nm.M}·${nm.F} / ${e} / ${c}${rg}`};
+  const setSum=()=>{const e={m:'현대',n:'90년대',g:'경성',j:'조선',f:'로판',s:'센티넬버스',w:'무협',p:'페르녹스'}[era]+(era==='p'?(ph==='ea'?'(초기)':'')+(pmode==='war'?'·전투':''):'');const c=era==='p'?P_LABEL[P_KEYS.indexOf(prank)]:CLS_LABEL[era][CLS_KEYS.indexOf(cls)];const nm=names();const rg=regionOK()&&region?' / '+region:'';$('#setSum').textContent=`${nm.M}·${nm.F} / ${e} / ${c}${rg}`};
   $('#setBtn').onclick=()=>{document.body.classList.toggle('setopen');$('#setBtn').firstChild.textContent=document.body.classList.contains('setopen')?'⚙ 설정 접기':'⚙ 설정'};
   setSum();document.addEventListener('click',()=>setTimeout(setSum,0));document.addEventListener('input',()=>setTimeout(setSum,0));
 
