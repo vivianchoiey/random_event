@@ -785,7 +785,7 @@ $('#nM').value=store.get('ev_nM','');$('#nF').value=store.get('ev_nF','');
 function eraOK(it){if(era==='p')return(it.tags.has('p')||!!it.gen)&&pOK(it);const has=ERAS.some(e=>it.tags.has(e));return!has||it.tags.has(era)||(INH[era]||[]).some(e=>it.tags.has(e))}
 function pOK(it){const t=it.tags;if(t.has('st')&&ph!=='st')return false;if(t.has('ea')&&ph!=='ea')return false;if(t.has('war')&&pmode!=='war')return false;if(t.has('ruby')&&!(ruby&&ph==='st'))return false;return true}
 const P_KEYS=['of','nc','pv','cv'],P_LABEL=['장교','부사관','병사','민간인'];
-function clsOK(it){const t=it.tags;if(era==='p'){const rk=P_KEYS.filter(k=>t.has(k));return!rk.length||rk.includes(prank)}if(t.has('top'))return cls==='top';if(t.has('low'))return cls==='low';if(t.has('r'))return cls==='r'||cls==='top';if(t.has('c'))return cls==='c'||cls==='low';return true}
+function clsOK(it){const t=it.tags;if(era==='p')return!P_KEYS.some(k=>t.has(k));if(t.has('top'))return cls==='top';if(t.has('low'))return cls==='low';if(t.has('r'))return cls==='r'||cls==='top';if(t.has('c'))return cls==='c'||cls==='low';return true}
 const CLS_KEYS=['top','r','o','c','low'];
 const CLS_LABEL={m:['재벌 총수 일가','부유층','보통','서민','노장'],s:['재벌 총수 일가','부유층','보통','서민','노장'],n:['재벌가','부잣집','보통','서민','달동네·판자촌'],g:['대부호 가문','유지·부잣집','보통','서민','막노동·행랑살이'],j:['왕실','양반 대감댁','중인','평민','노비·천민'],f:['황족','공작·대귀족','하급·몰락 귀족','평민','하녀·고아·빈민'],w:['황실·무림맹주가','명문 세가','문파 제자','평민','낭인·거지']};
 function baseOK(it){return eraOK(it)&&clsOK(it)}
@@ -1047,7 +1047,7 @@ $('#rollCourse').onclick=rollCourse;
 
 /* ---------- 공통 ---------- */
 function setSeg(id,val){document.querySelectorAll(id+' .tab').forEach(b=>b.classList.toggle('on',b.dataset.v===val))}
-function renderCls(){const box=$('#clsTabs');box.innerHTML='';$('#clsH').textContent=era==='p'?'여주 계급·신분':'사는 형편';
+function renderCls(){const box=$('#clsTabs');box.innerHTML='';$('#clsH').textContent='사는 형편';$('#clsH').style.display=box.style.display=era==='p'?'none':'';
   if(era==='p'){P_KEYS.forEach((k,i)=>{const b=document.createElement('button');b.className='tab'+(k===prank?' on':'');b.dataset.v=k;b.textContent=P_LABEL[i];
     b.onclick=()=>{prank=k;store.set('ev_prank',prank);setSeg('#clsTabs',prank);FIELDS.forEach(([f])=>{if(!locks[f])roll(f)});fixChain();renderEv();rollCourse()};box.appendChild(b)});return}
   CLS_KEYS.forEach((k,i)=>{const b=document.createElement('button');b.className='tab'+(k===cls?' on':'');b.dataset.v=k;b.textContent=CLS_LABEL[era][i];
@@ -1126,7 +1126,7 @@ if(PARENT||/embed=1/.test(location.search)){
   const coLabel=()=>{const trip=slots.length&&slots[slots.length-1].day>0;coBtn.querySelector('.st1').textContent=trip?'▶ 이 일정으로 여행 떠나기':'▶ 이 코스로 데이트 가기'};
   const _renderCo=renderCo;renderCo=function(){_renderCo.apply(this,arguments);coLabel()};
   $('#copyEv').textContent='복사만 하기';$('#copyCo').textContent='복사만 하기';
-  const setSum=()=>{const e={m:'현대',n:'90년대',g:'경성',j:'조선',f:'로판',s:'센티넬버스',w:'무협',p:'페르녹스'}[era]+(era==='p'?(ph==='ea'?'(초기)':'')+(pmode==='war'?'·전투':''):'');const c=era==='p'?P_LABEL[P_KEYS.indexOf(prank)]:CLS_LABEL[era][CLS_KEYS.indexOf(cls)];const nm=names();const rg=regionOK()&&region?' / '+region:'';$('#setSum').textContent=`${nm.M}·${nm.F} / ${e} / ${c}${rg}`};
+  const setSum=()=>{const e={m:'현대',n:'90년대',g:'경성',j:'조선',f:'로판',s:'센티넬버스',w:'무협',p:'페르녹스'}[era]+(era==='p'?(ph==='ea'?'(초기)':'')+(pmode==='war'?'·전투':''):'');const c=era==='p'?'':CLS_LABEL[era][CLS_KEYS.indexOf(cls)];const nm=names();const rg=regionOK()&&region?' / '+region:'';$('#setSum').textContent=`${nm.M}·${nm.F} / ${e} / ${c}${rg}`};
   $('#setBtn').onclick=()=>{document.body.classList.toggle('setopen');$('#setBtn').firstChild.textContent=document.body.classList.contains('setopen')?'⚙ 설정 접기':'⚙ 설정'};
   setSum();document.addEventListener('click',()=>setTimeout(setSum,0));document.addEventListener('input',()=>setTimeout(setSum,0));
 
