@@ -1089,7 +1089,7 @@ function fitFont(){
     const c=[1,2,3,4].map(k=>16*k/dpr).filter(x=>x>=12&&x<=17);
     fs=c.length?c.sort((a,b)=>Math.abs(a-14)-Math.abs(b-14))[0]:16;
   }
-  fs=dpr<2?Math.max(11,fs-3):11; // 전체적으로 한 단계 작게 (PC -3px, 폰 -2px)
+  fs=dpr<2?Math.max(12,fs-2):12; // 전체적으로 한 단계 작게 (PC -2px, 폰 -1px)
   const b=document.body.style;b.setProperty('--fs',fs+'px');b.setProperty('--fh',(fs*2)+'px');b.setProperty('--labw',Math.round(fs*7.4)+'px');
 }
 fitFont();window.addEventListener('resize',fitFont);
